@@ -69,7 +69,7 @@ public class Server implements ServerInterface {
     }
 
 
-    public byte[] get(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] get(UUID userID, byte[] domain, byte[] username) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
         if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
 
