@@ -37,7 +37,7 @@ public class Server implements ServerInterface {
         System.out.println("Waiting...");
         
         try {
-            reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 0));
+            reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 1099));
         } catch (Exception e) {
             System.out.println("ERROR: Failed to register the server object.");
             e.printStackTrace();
@@ -69,7 +69,7 @@ public class Server implements ServerInterface {
     }
 
 
-    public byte[] get(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] get(UUID userID, byte[] domain, byte[] username) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
         if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
 

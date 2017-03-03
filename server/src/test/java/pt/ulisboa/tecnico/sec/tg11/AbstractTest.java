@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -29,7 +28,7 @@ public abstract class AbstractTest {
 		Server serverObject = new Server();
 		System.out.println("Waiting...");
 		try {
-			reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 0));
+			reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 1099));
 		} catch (Exception e) {
 			System.out.println("ERROR: Failed to register the server object.");
 			e.printStackTrace();
@@ -46,5 +45,6 @@ public abstract class AbstractTest {
 	public void tearDown() throws Exception {
 		System.out.print("tearDown");
 		reg.unbind("PWMServer");
+		UnicastRemoteObject.unexportObject(reg, true);
 	}
 }
