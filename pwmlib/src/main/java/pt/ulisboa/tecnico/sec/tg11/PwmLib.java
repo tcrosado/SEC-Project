@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
 import javax.print.DocFlavor;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -25,7 +26,7 @@ public class PwmLib {
     }
 
 
-    public void init(KeyStore ks,char[] password) {
+    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -54,6 +55,7 @@ public class PwmLib {
         } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
         }
+
     }
 
     public void save_password (byte[] domain, byte[] username, byte[] password){

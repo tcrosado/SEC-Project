@@ -14,11 +14,7 @@ public class UserDoesNotExistException extends Exception {
 	public UserDoesNotExistException(UUID user) {
 		userId = user;
 	}
-	
-	public UUID getUserId() {
-		return userId;
 
-	}
 	@Override
 	public String getMessage() {
 		return "The user '" + userId + "' does not exist.";

@@ -21,7 +21,7 @@ public class Login {
 		return _domain;
 	}
 	
-	byte[] getPass(){
+	byte[] getPassword(){
 		return _password;
 	}
 	

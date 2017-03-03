@@ -14,11 +14,7 @@ public class UserAlreadyExistsException extends Exception {
 	public UserAlreadyExistsException(UUID user) {
 		userId = user;
 	}
-	
-	public UUID getUserId() {
-		return userId;
 
-	}
 	@Override
 	public String getMessage() {
 		return "The user '" + userId + "' already exists.";

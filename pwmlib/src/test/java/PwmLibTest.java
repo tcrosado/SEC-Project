@@ -16,7 +16,7 @@ public class PwmLibTest {
 
     private PwmLib _pwmlib;
     private KeyStore _keystore;
-
+    private String _keystorepw;
 
     @Before
     public void setUp() throws Exception {
@@ -24,8 +24,9 @@ public class PwmLibTest {
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
 
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _keystorepw = "example";
         _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore);
+        _pwmlib.init(_keystore, _keystorepw.toCharArray());
     }
 
     @After
