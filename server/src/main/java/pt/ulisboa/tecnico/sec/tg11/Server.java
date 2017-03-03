@@ -50,7 +50,7 @@ public class Server implements ServerInterface {
             System.out.println("ERROR: Failed to register the server object.");
             e.printStackTrace();
         }
-
+        while (true);
     }
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
@@ -68,8 +68,8 @@ public class Server implements ServerInterface {
     }
 
     public byte[] get(Key publicKey, byte[] domain, byte[] username) {
-
-        return new byte[0];
+        byte[] val = "abc".getBytes();
+        return val;
     }
 
 	public UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
