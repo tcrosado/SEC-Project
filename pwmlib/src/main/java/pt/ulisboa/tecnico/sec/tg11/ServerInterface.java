@@ -1,5 +1,9 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
+import pt.ulisboa.tecnico.sec.tg11.exceptions.PasswordDoesNotExistException;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.UserDoesNotExistException;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.security.Key;
@@ -10,7 +14,9 @@ import java.util.UUID;
  */
 public interface ServerInterface extends Remote {
 
-    UUID register(Key publicKey) throws RemoteException;
-    void put(Key publicKey,byte[] domain, byte[] username,byte[] password) throws RemoteException;
-    byte[] get(Key publicKey,byte[] domain, byte[] username) throws RemoteException;
+    UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException;
+
+    void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException;
+
+    byte[] get(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException;
 }
