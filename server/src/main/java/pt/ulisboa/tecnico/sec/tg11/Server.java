@@ -31,7 +31,7 @@ public class Server implements ServerInterface {
             System.out.println("ERROR: Failed to register the server object.");
             e.printStackTrace();
         }
-
+        while (true);
     }
 
     public void register(Key publicKey) {
@@ -43,7 +43,7 @@ public class Server implements ServerInterface {
     }
 
     public byte[] get(Key publicKey, byte[] domain, byte[] username) {
-
-        return new byte[0];
+        byte[] val = "abc".getBytes();
+        return val;
     }
 }
