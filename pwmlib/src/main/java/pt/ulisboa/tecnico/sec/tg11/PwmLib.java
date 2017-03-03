@@ -32,7 +32,7 @@ public class PwmLib {
 
                 KeyPair keypair = keyGen.genKeyPair();
 
-                server.put(keypair.getPublic(),new byte[0],new byte[0],new byte[0]);
+                server.put(keypair.getPublic(), new byte[0], new byte[0], new byte[0]);
 
             } catch (RemoteException e) {
                 e.printStackTrace();
