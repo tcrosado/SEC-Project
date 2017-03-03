@@ -72,6 +72,7 @@ public class ServerTest {
 		server.put(keypair.getPublic(),domain.getBytes(),username.getBytes(),password.getBytes());
 	}
 
+
 	@Test
 	public void testUpdatePasswordPut() throws RemoteException {
 		String domain = "www.google.pt";
