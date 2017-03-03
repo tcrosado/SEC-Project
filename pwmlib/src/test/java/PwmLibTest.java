@@ -4,6 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 import pt.ulisboa.tecnico.sec.tg11.ServerInterface;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.RegisterUser418;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.RetrievePassword418;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.SavePassword418;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.security.KeyStore;
@@ -17,6 +21,7 @@ public class PwmLibTest {
     private PwmLib _pwmlib;
     private KeyStore _keystore;
     private String _keystorepw;
+    private UUID _userID;
 
     @Before
     public void setUp() throws Exception {
@@ -25,8 +30,16 @@ public class PwmLibTest {
 
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
         _keystorepw = "example";
+
+        // get user password and file input stream
+        char[] password = _keystorepw.toCharArray();
+
+        _keystore.load(null, password);
+
         _pwmlib = new PwmLib();
         _pwmlib.init(_keystore, _keystorepw.toCharArray());
+
+
     }
 
     @After
@@ -35,37 +48,37 @@ public class PwmLibTest {
     }
 
     @Test
-    public void register_user() {
-        UUID userID = _pwmlib.register_user();
-        Assert.assertNotNull(userID);
+    public void register_user() throws RegisterUser418 {
+        _userID = _pwmlib.register_user();
+        Assert.assertNotNull(_userID);
     }
 
     @Test
-    public void save_password(){
+    public void save_password() throws SavePassword418 {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
-        _pwmlib.save_password(domain.getBytes(),username.getBytes(),password.getBytes());
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 
     @Test
-    public void retrieve_password() {
+    public void retrieve_password() throws RetrievePassword418 {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
-        byte [] pw = _pwmlib.retrieve_password(domain.getBytes(), username.getBytes());
+        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
         Assert.assertEquals(pw, password.getBytes());
     }
 
     @Test
-    public void retrive_altered_password() {
+    public void retrive_altered_password() throws SavePassword418, RetrievePassword418 {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
-        _pwmlib.save_password(domain.getBytes(),username.getBytes(),password.getBytes());
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
         String password2 = "testPass2";
-        _pwmlib.save_password(domain.getBytes(),username.getBytes(),password2.getBytes());
-        byte [] pw = _pwmlib.retrieve_password(domain.getBytes(), username.getBytes());
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
         Assert.assertEquals(pw, password2.getBytes());
     }
 
