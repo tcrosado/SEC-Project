@@ -5,8 +5,10 @@ import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.PasswordDoesNotExistException;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserDoesNotExistException;
+
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -26,6 +28,7 @@ public class ServerTest extends AbstractTest{
 		super.setUp();
 		userID = server.register(keypair.getPublic());
 	}
+
 
 	@Test
 	public void testPut() throws RemoteException, UserDoesNotExistException {
@@ -58,33 +61,33 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test (expected = UserDoesNotExistException.class)
-	public void testNonExistentGet() throws RemoteException {
-		byte[] result = server.get(keypair.getPublic(),new byte[0],new byte[0]);
+	public void testNonExistentGet() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+		byte[] result = server.get(userID,new byte[0],new byte[0]);
 	}
 
 
 	@Test
-	public void testGet() throws RemoteException, UserDoesNotExistException {
+	public void testGet() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
 		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		byte[] result = server.get(keypair.getPublic(),domain.getBytes(),username.getBytes());
+		byte[] result = server.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password.getBytes(),result);
 	}
 
 	@Test
-	public void testGetUpdated() throws RemoteException, UserDoesNotExistException {
+	public void testGetUpdated() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
 		String password2 = "pass";
 		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		byte[] result = server.get(keypair.getPublic(),domain.getBytes(),username.getBytes());
+		byte[] result = server.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password.getBytes(),result);
 
 		server.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-		result = server.get(keypair.getPublic(),domain.getBytes(),username.getBytes());
+		result = server.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password2.getBytes(),result);
 	}
 

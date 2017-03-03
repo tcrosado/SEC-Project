@@ -1,16 +1,8 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import javax.management.remote.rmi.RMIServer;
-
+import pt.ulisboa.tecnico.sec.tg11.exceptions.PasswordDoesNotExistException;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserDoesNotExistException;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -54,22 +46,44 @@ public class Server implements ServerInterface {
     }
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
-        
+        boolean update = false;
     	
     	if(_userlogin.containsKey(userID)){
-    		
-    		if(_userlogin.get(userID).isEmpty()){
-    			Login log = new Login(username, domain, password);
-    			_userlogin.get(userID).add(log);
-    		}
+            List<Login> login_list = _userlogin.get(userID);
+
+            if(!login_list.isEmpty()){
+                for (Login l: login_list) {
+                    if( (l.getDomain() == domain) && (l.getUsername() == username)){
+                        l.setPassword(password);
+                        update = true;
+                    }
+                }
+            }
+            if(!update){
+                Login log = new Login(username, domain, password);
+                login_list.add(log);
+            }
     	}
     	else
     		throw new UserDoesNotExistException(userID);
     }
 
-    public byte[] get(Key publicKey, byte[] domain, byte[] username) {
-        byte[] val = "abc".getBytes();
-        return val;
+
+    public byte[] get(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException {
+        if(_userlogin.containsKey(userID)){
+            List<Login> login_list = _userlogin.get(userID);
+
+            if(!login_list.isEmpty()){
+                for (Login l: login_list) {
+                    if( (l.getDomain() == domain) && (l.getUsername() == username)){
+                        return l.getPassword();
+                    }
+                }
+            }
+            throw new PasswordDoesNotExistException(userID, domain, username);
+        }
+        else
+            throw new UserDoesNotExistException(userID);
     }
 
 	public UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
