@@ -45,6 +45,10 @@ public abstract class AbstractTest {
 	public void tearDown() throws Exception {
 		System.out.print("tearDown");
 		reg.unbind("PWMServer");
+<<<<<<< HEAD
 		UnicastRemoteObject.unexportObject(reg, true);
+=======
+		UnicastRemoteObject.unexportObject(reg,true);
+>>>>>>> 6ad185c9c13add5ce087db36e4045d45ccec1e8a
 	}
 }

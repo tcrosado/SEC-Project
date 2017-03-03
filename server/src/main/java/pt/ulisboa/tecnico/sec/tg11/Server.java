@@ -53,7 +53,7 @@ public class Server implements ServerInterface {
 
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if( (l.getDomain() == domain) && (l.getUsername() == username)){
+                    if( (l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
                         l.setPassword(password);
                         update = true;
                     }
@@ -75,7 +75,7 @@ public class Server implements ServerInterface {
 
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if( (l.getDomain() == domain) && (l.getUsername() == username)){
+                    if( (l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
                         return l.getPassword();
                     }
                 }
