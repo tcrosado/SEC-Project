@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.*;
+import java.util.UUID;
 
 /**
  * Created by trosado on 01/03/17.
@@ -11,19 +12,12 @@ import java.security.*;
 public class PwmLib {
     private KeyStore ks;
 
-
-
     public static void main(String[] args){
-
-
 
         String text = "RMI Test Message";
         ServerInterface server = null;
 
         try {
-
-
-
             Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
             server = (ServerInterface) registry.lookup("PWMServer");
             System.out.println("Connected to Server");
@@ -70,10 +64,10 @@ public class PwmLib {
 
     }
 
-    public void register_user(){
+    public UUID register_user(){
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
-
+        return UUID.randomUUID();
     }
 
     public void save_password (byte[] domain, byte[] username, byte[] password){
