@@ -1,8 +1,7 @@
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
+import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 
 /**
  * Created by trosado on 01/03/17.

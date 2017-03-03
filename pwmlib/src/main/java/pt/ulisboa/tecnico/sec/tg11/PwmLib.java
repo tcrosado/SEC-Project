@@ -1,4 +1,9 @@
-import java.security.KeyStore;
+package pt.ulisboa.tecnico.sec.tg11;
+
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.security.*;
 
 /**
  * Created by trosado on 01/03/17.
@@ -9,7 +14,41 @@ public class PwmLib {
 
 
     public static void main(String[] args){
-        String keystore_path = args[0];
+
+
+
+        String text = "RMI Test Message";
+        ServerInterface server = null;
+
+        try {
+
+
+
+            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
+            server = (ServerInterface) registry.lookup("PWMServer");
+            System.out.println("Connected to Server");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (server != null) {
+            try {
+                KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
+                SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+                keyGen.initialize(1024, random);
+
+                KeyPair keypair = keyGen.genKeyPair();
+
+                server.put(keypair.getPublic(),new byte[],new byte[0],new byte[0]);
+
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (NoSuchProviderException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Finished");
+        }
     }
 
     public String test(){

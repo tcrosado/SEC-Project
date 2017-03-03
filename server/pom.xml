@@ -21,7 +21,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>pt.ulisboa.tecnico.sec.tg11.Main</mainClass>
+                    <mainClass>pt.ulisboa.tecnico.sec.tg11.Server</mainClass>
                 </configuration>
             </plugin>
         </plugins>
