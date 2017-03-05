@@ -58,7 +58,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 
-	@Test (expected = UserDoesNotExistException.class)
+	@Test (expected = PasswordDoesNotExistException.class)
 	public void testNonExistentGet() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
 		byte[] result = serverRemote.get(userID,new byte[0],new byte[0]);
 	}

@@ -4,6 +4,7 @@ import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
+import pt.ulisboa.tecnico.sec.tg11.Login;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -68,23 +69,22 @@ public class Server implements PWMInterface {
 	
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
-        boolean update = false;
     	
     	if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
 
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if( (l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
-                        l.setPassword(password);
-                        update = true;
+                    if((l.getDomain().equals(domain)) && l.getUsername().equals(username)){
+                    	l.setPassword(password);
+                    	return;
                     }
                 }
             }
-            if(!update){
-                Login log = new Login(username, domain, password);
-                login_list.add(log);
-            }
+            
+            Login l = new Login(username, domain, password);
+            login_list.add(l);
+            
     	}
     	else
     		throw new UserDoesNotExistException(userID);
@@ -92,12 +92,13 @@ public class Server implements PWMInterface {
 
 
     public byte[] get(UUID userID, byte[] domain, byte[] username) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
-        if(_userlogin.containsKey(userID)){
+        
+    	if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
-
+            
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if( (l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
+                    if((l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
                         return l.getPassword();
                     }
                 }
@@ -114,8 +115,8 @@ public class Server implements PWMInterface {
 		
 		if(!_userkeys.containsKey(publicKey)){
 			_userkeys.put(publicKey, user);
-			//List<Login> log = new ArrayList<Login>();
-			//_userlogin.put(user, log);
+			List<Login> log = new ArrayList<Login>();
+			_userlogin.put(user, log);
 		}
 		else
 			throw new UserAlreadyExistsException(user);
