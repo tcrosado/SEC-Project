@@ -40,6 +40,7 @@ public class Server implements PWMInterface {
         
         try {
             reg.rebind("PWMServer", (Remote) UnicastRemoteObject.exportObject((Remote) serverObject, 0));
+
         } catch (Exception e) {
             System.out.println("ERROR: Failed to register the server object.");
             e.printStackTrace();
