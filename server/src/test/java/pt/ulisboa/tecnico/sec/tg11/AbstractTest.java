@@ -3,18 +3,22 @@ package pt.ulisboa.tecnico.sec.tg11;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
+
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 
 public abstract class AbstractTest {
-		ServerInterface serverRemote;
+
+		PWMInterface serverRemote;
 		KeyPair keypair;
 		Server serverObject;
 	@Before
@@ -27,7 +31,7 @@ public abstract class AbstractTest {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-			serverRemote = (ServerInterface) registry.lookup("PWMServer");
+			serverRemote = (PWMInterface) registry.lookup("PWMServer");
 			System.out.println("Connected to Server");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -43,6 +47,5 @@ public abstract class AbstractTest {
 	@After
 	public void tearDown() throws Exception {
 		serverObject.shutdown();
-
 	}
 }

@@ -1,11 +1,11 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import pt.ulisboa.tecnico.sec.tg11.exceptions.PasswordDoesNotExistException;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserDoesNotExistException;
-
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
+
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -21,13 +21,14 @@ import java.util.UUID;
  * Created by trosado on 01/03/17.
  *
  */
-public class Server implements ServerInterface {
+public class Server implements PWMInterface {
 	
 	private final String SERVER_NAME = "PWMServer";
 
 
 	Map<Key, UUID> _userkeys = new HashMap<Key, UUID>();
-	Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
+	static Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
+	
 
     private Registry reg;
     private int port;
@@ -46,7 +47,7 @@ public class Server implements ServerInterface {
         System.out.println("Waiting...");
 
         try {
-            reg.rebind(SERVER_NAME, (ServerInterface) UnicastRemoteObject.exportObject(this, this.port));
+            reg.rebind(SERVER_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {
             System.out.println("ERROR: Failed to register the server object.");
             e.printStackTrace();
@@ -64,6 +65,7 @@ public class Server implements ServerInterface {
         }
         while (true);
     }
+	
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
         boolean update = false;
@@ -112,8 +114,8 @@ public class Server implements ServerInterface {
 		
 		if(!_userkeys.containsKey(publicKey)){
 			_userkeys.put(publicKey, user);
-			List<Login> log = new ArrayList<Login>();
-			_userlogin.put(user, log);
+			//List<Login> log = new ArrayList<Login>();
+			//_userlogin.put(user, log);
 		}
 		else
 			throw new UserAlreadyExistsException(user);

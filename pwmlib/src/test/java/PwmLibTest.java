@@ -2,14 +2,16 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
-import pt.ulisboa.tecnico.sec.tg11.ServerInterface;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.RegisterUser418;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.RetrievePassword418;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.SavePassword418;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import java.rmi.RemoteException;
 import java.security.KeyStore;
 import java.util.UUID;
 
@@ -48,7 +50,8 @@ public class PwmLibTest {
     }
 
     @Test
-    public void register_user() throws RegisterUser418 {
+    public void register_user() throws RegisterUser418, UserAlreadyExistsException {
+
         _userID = _pwmlib.register_user();
         Assert.assertNotNull(_userID);
     }
@@ -62,7 +65,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws RetrievePassword418 {
+    public void retrieve_password() throws RetrievePassword418, RemoteException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -71,7 +74,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrive_altered_password() throws SavePassword418, RetrievePassword418 {
+    public void retrive_altered_password() throws SavePassword418, RetrievePassword418, RemoteException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";

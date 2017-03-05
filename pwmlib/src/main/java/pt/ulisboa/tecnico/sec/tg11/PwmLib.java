@@ -1,5 +1,10 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.PasswordDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserDoesNotExistException;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.*;
 
 import javax.print.DocFlavor;
@@ -18,7 +23,7 @@ public class PwmLib {
     private char[] ksPassword;
     private KeyStore ks = null;
     private UUID userID = null;
-    private ServerInterface server = null;
+    private PWMInterface server = null;
 
 
     public static void main(String[] args){
@@ -38,10 +43,10 @@ public class PwmLib {
         this.ks = ks;
         this.ksPassword = password;
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-        server = (ServerInterface) registry.lookup("PWMServer");
+        server = (PWMInterface) registry.lookup("PWMServer");
     }
 
-    public UUID register_user() throws RegisterUser418 {
+    public UUID register_user() throws RegisterUser418, UserAlreadyExistsException {
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
         try {
@@ -78,7 +83,7 @@ public class PwmLib {
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws RetrievePassword418 {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws RetrievePassword418, RemoteException {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
