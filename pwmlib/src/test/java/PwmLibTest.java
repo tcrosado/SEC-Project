@@ -4,6 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 import pt.ulisboa.tecnico.sec.tg11.ServerInterface;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.RegisterUser418;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.security.KeyStore;
@@ -35,7 +37,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void register_user() {
+    public void register_user() throws RegisterUser418 {
         UUID userID = _pwmlib.register_user();
         Assert.assertNotNull(userID);
     }

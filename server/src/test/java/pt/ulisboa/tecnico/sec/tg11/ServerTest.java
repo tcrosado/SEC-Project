@@ -5,9 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.PasswordDoesNotExistException;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
 
 
 import java.rmi.RemoteException;

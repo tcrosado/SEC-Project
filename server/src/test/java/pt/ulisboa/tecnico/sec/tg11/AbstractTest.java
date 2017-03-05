@@ -3,8 +3,11 @@ package pt.ulisboa.tecnico.sec.tg11;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -14,7 +17,7 @@ import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 
 public abstract class AbstractTest {
-		ServerInterface server;
+		PWMInterface server;
 		KeyPair keypair;
 		Registry reg;
 
@@ -29,7 +32,7 @@ public abstract class AbstractTest {
 		Server serverObject = new Server();
 		System.out.println("Waiting...");
 		try {
-			reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 1099));
+			reg.rebind("PWMServer", (Remote) UnicastRemoteObject.exportObject((Remote) serverObject, 1099));
 		} catch (Exception e) {
 			System.out.println("ERROR: Failed to register the server object.");
 			e.printStackTrace();
