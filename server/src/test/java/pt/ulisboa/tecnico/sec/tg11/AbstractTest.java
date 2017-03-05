@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -13,24 +14,22 @@ import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 
 public abstract class AbstractTest {
-		ServerInterface server;
+		ServerInterface serverRemote;
 		KeyPair keypair;
-		Registry reg;
-
+		Server serverObject;
 	@Before
 	public void setUp() throws Exception {
+		serverObject = new Server();
+		serverObject.setUp();
+
+
+		String text = "RMI Test Message";
+
 		try {
-			reg = LocateRegistry.createRegistry(1099);
+			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
+			serverRemote = (ServerInterface) registry.lookup("PWMServer");
+			System.out.println("Connected to Server");
 		} catch (Exception e) {
-			System.out.println("ERROR: Could not create the registry.");
-			e.printStackTrace();
-		}
-		Server serverObject = new Server();
-		System.out.println("Waiting...");
-		try {
-			reg.rebind("PWMServer", (ServerInterface) UnicastRemoteObject.exportObject(serverObject, 1099));
-		} catch (Exception e) {
-			System.out.println("ERROR: Failed to register the server object.");
 			e.printStackTrace();
 		}
 
@@ -43,12 +42,7 @@ public abstract class AbstractTest {
 
 	@After
 	public void tearDown() throws Exception {
-		System.out.print("tearDown");
-		reg.unbind("PWMServer");
-<<<<<<< HEAD
-		UnicastRemoteObject.unexportObject(reg, true);
-=======
-		UnicastRemoteObject.unexportObject(reg,true);
->>>>>>> 6ad185c9c13add5ce087db36e4045d45ccec1e8a
+		serverObject.shutdown();
+
 	}
 }

@@ -19,14 +19,14 @@ public class RegisterTest extends AbstractTest{
 
 	@Test
 	public void registerUser() throws RemoteException, UserAlreadyExistsException {
-		server.register(keypair.getPublic());
+		serverRemote.register(keypair.getPublic());
 
 	}
 
 	@Test (expected = UserAlreadyExistsException.class)
 	public void registerDuplicateUser() throws RemoteException, UserAlreadyExistsException {
-		server.register(keypair.getPublic());
-		server.register(keypair.getPublic());
+		serverRemote.register(keypair.getPublic());
+		serverRemote.register(keypair.getPublic());
 	}
 
 }

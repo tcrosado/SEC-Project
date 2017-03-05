@@ -26,7 +26,7 @@ public class ServerTest extends AbstractTest{
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		userID = server.register(keypair.getPublic());
+		userID = serverRemote.register(keypair.getPublic());
 	}
 
 
@@ -35,7 +35,7 @@ public class ServerTest extends AbstractTest{
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
-		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
 	}
 
 
@@ -45,8 +45,8 @@ public class ServerTest extends AbstractTest{
 		String username = "testUser";
 		String password2 = "testPass2";
 		String password = "testPass";
-		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		server.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
 	}
 
 	@Test
@@ -55,14 +55,14 @@ public class ServerTest extends AbstractTest{
 		String username = "testUser";
 		String username2 = "testUser2";
 		String password = "testPass";
-		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		server.put(userID,domain.getBytes(),username2.getBytes(),password.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username2.getBytes(),password.getBytes());
 	}
 
 
 	@Test (expected = UserDoesNotExistException.class)
 	public void testNonExistentGet() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
-		byte[] result = server.get(userID,new byte[0],new byte[0]);
+		byte[] result = serverRemote.get(userID,new byte[0],new byte[0]);
 	}
 
 
@@ -71,8 +71,8 @@ public class ServerTest extends AbstractTest{
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
-		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		byte[] result = server.get(userID,domain.getBytes(),username.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
+		byte[] result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password.getBytes(),result);
 	}
 
@@ -82,12 +82,12 @@ public class ServerTest extends AbstractTest{
 		String username = "testUser";
 		String password = "testPass";
 		String password2 = "pass";
-		server.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
-		byte[] result = server.get(userID,domain.getBytes(),username.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
+		byte[] result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password.getBytes(),result);
 
-		server.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-		result = server.get(userID,domain.getBytes(),username.getBytes());
+		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+		result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password2.getBytes(),result);
 	}
 
