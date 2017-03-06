@@ -80,10 +80,15 @@ public class Server implements PWMInterface {
                     	return;
                     }
                 }
+                
+                Login l = new Login(username, domain, password);
+                login_list.add(l);
+                return;
             }
             
             Login l = new Login(username, domain, password);
             login_list.add(l);
+            return;
             
     	}
     	else
