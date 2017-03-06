@@ -13,6 +13,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.Key;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,16 +71,8 @@ public class Server implements PWMInterface {
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
     	
-    	System.out.println("Login list userid: "+userID);
-    	System.out.println("Será que contém? "+_userlogin.containsKey(userID));
     	if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
-            
-            for(Login l: login_list){
-            	System.out.println("Login list domain: "+new String(l.getDomain()));
-            	System.out.println("Login list username: "+new String(l.getUsername()));
-            	System.out.println("Login list password: "+new String(l.getPassword()));
-            }
             
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
@@ -90,8 +83,9 @@ public class Server implements PWMInterface {
                 }               
             }
             
-            Login l = new Login(username, domain, password);
-            login_list.add(l);
+            List<Login> l = new ArrayList<Login>(login_list);
+            l.add(new Login(username, domain, password));
+            _userlogin.put(userID, l);
             return;
             
     	}
@@ -101,13 +95,13 @@ public class Server implements PWMInterface {
 
 
     public byte[] get(UUID userID, byte[] domain, byte[] username) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
-        
+    	
     	if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
             
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if((l.getDomain().equals(domain)) && (l.getUsername().equals(username))){
+                    if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
                         return l.getPassword();
                     }
                 }
