@@ -76,8 +76,9 @@ public class Server implements PWMInterface {
             
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
-                    if((l.getDomain().equals(domain)) && l.getUsername().equals(username)){
+                    if((Arrays.equals(l.getDomain(),domain)) && Arrays.equals(l.getUsername(),username)){
                     	l.setPassword(password);
+                    	_userlogin.replace(userID, login_list);
                     	return;
                     }
                 }               
