@@ -8,11 +8,13 @@ import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserDoesNotExistExcept
 import pt.ulisboa.tecnico.sec.tg11.exceptions.*;
 
 import javax.print.DocFlavor;
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.UUID;
 
 /**
@@ -26,9 +28,67 @@ public class PwmLib {
     private PWMInterface server = null;
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
 
+        try {
+
+            test();
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (RegisterUser418 registerUser418) {
+            registerUser418.printStackTrace();
+        } catch (UserAlreadyExistsException e) {
+            e.printStackTrace();
+        } catch (SavePassword418 savePassword418) {
+            savePassword418.printStackTrace();
+        } catch (RetrievePassword418 retrievePassword418) {
+            retrievePassword418.printStackTrace();
+        }
+
+
+
+    }
+
+    public static void test() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NotBoundException, RegisterUser418, UserAlreadyExistsException, SavePassword418, RetrievePassword418 {
+        PwmLib _pwmlib = new PwmLib();
+        KeyStore _keystore;
+        String _keystorepw;
+        UUID _userID;
+
+        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _keystorepw = "example";
+
+        // get user password and file input stream
+        char[] _password = _keystorepw.toCharArray();
+
+        _keystore.load(null, _password);
+
+        _pwmlib.init(_keystore, _keystorepw.toCharArray());
+
+        _userID = _pwmlib.register_user();
+
+        String domain = "www.google.pt";
+        String username = "testUser";
+        String password = "testPass";
+        String password2 = "testPass2";
+
+        System.out.println("Teste main -> UserID: " + _userID);
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
+        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+        System.out.println("Teste main -> PasswordObtida: " + new String(pw));
+
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+        pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+        System.out.println("Teste main -> PasswordObtida2: " + new String(pw));
     }
 
 
@@ -50,6 +110,7 @@ public class PwmLib {
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
         try {
+            System.out.println("register_user -> client_public_key: " + ks.getKey(CLIENT_PUBLIC_KEY,ksPassword));
             this.userID = server.register(ks.getKey(CLIENT_PUBLIC_KEY,ksPassword));
             return userID;
         } catch (RemoteException e) {
@@ -73,13 +134,15 @@ public class PwmLib {
         */
 
         try {
+            System.out.println("save_password -> UserID: " + userID);
+            System.out.println("save_password -> domain: " + new String(domain));
             server.put(userID ,domain,username,password);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (UserDoesNotExistException e) {
             e.printStackTrace();
         }
-        throw new SavePassword418();
+        //throw new SavePassword418();
     }
 
 

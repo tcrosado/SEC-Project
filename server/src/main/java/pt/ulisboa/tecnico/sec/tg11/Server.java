@@ -70,7 +70,9 @@ public class Server implements PWMInterface {
 	
 
     public void put(UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException{
-    	
+
+        System.out.println("put -> UserID: " + userID);
+        System.out.println("put -> domain: " + new String(domain));
     	if(_userlogin.containsKey(userID)){
             List<Login> login_list = _userlogin.get(userID);
             
@@ -116,6 +118,8 @@ public class Server implements PWMInterface {
 	public UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
 		
 		UUID user = UUID.randomUUID();
+
+        System.out.println("Server -> UserID: " + user);
 		
 		if(!_userkeys.containsKey(publicKey)){
 			_userkeys.put(publicKey, user);

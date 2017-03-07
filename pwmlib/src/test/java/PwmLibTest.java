@@ -3,11 +3,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException;
+
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.RegisterUser418;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.RetrievePassword418;
 import pt.ulisboa.tecnico.sec.tg11.exceptions.SavePassword418;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
@@ -41,6 +42,7 @@ public class PwmLibTest {
         _pwmlib = new PwmLib();
         _pwmlib.init(_keystore, _keystorepw.toCharArray());
 
+        _userID = _pwmlib.register_user();
 
     }
 
@@ -50,10 +52,12 @@ public class PwmLibTest {
     }
 
     @Test
-    public void register_user() throws RegisterUser418, UserAlreadyExistsException {
+    public void register_user() throws RegisterUser418, UserAlreadyExistsException, pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException {
 
-        _userID = _pwmlib.register_user();
+        //_userID = _pwmlib.register_user();
+        System.out.println("UserID: " + _userID);
         Assert.assertNotNull(_userID);
+        System.out.println("Teste1 ");
     }
 
     @Test
@@ -61,6 +65,7 @@ public class PwmLibTest {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
+        //System.out.println("Teste 2 -> UserID: " + _userID);
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 
