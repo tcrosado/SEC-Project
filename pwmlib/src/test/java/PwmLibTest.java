@@ -1,7 +1,4 @@
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
@@ -22,13 +19,13 @@ import java.util.UUID;
  */
 public class PwmLibTest {
 
-    private PwmLib _pwmlib;
-    private KeyStore _keystore;
-    private String _keystorepw;
-    private UUID _userID;
+    private static KeyStore _keystore;
+    private static PwmLib _pwmlib;
+    private static String _keystorepw;
+    private static UUID _userID;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
 
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
 
@@ -40,13 +37,19 @@ public class PwmLibTest {
 
         _keystore.load(null, password);
 
+        _pwmlib = new PwmLib();
+        _pwmlib.init(_keystore, _keystorepw.toCharArray());
+
+        _userID = _pwmlib.register_user();
+
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterClass
+    public static void tearDown() throws Exception {
         _pwmlib.close();
     }
 
+    /*
     @Test
     public void testeverything() throws RemoteException, NotBoundException, UnrecoverableKeyException, UserAlreadyExistsException, NoSuchAlgorithmException, KeyStoreException, UserDoesNotExistException, PasswordDoesNotExistException {
 
@@ -77,13 +80,6 @@ public class PwmLibTest {
     }
 
 
-
-
-
-
-
-
-/*
     @Test
     public void register_user() throws RegisterUser418, UserAlreadyExistsException, pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException {
 
@@ -92,9 +88,10 @@ public class PwmLibTest {
         Assert.assertNotNull(_userID);
         System.out.println("Teste1 ");
     }
+   */
 
     @Test
-    public void save_password() throws SavePassword418 {
+    public void save_password() throws RemoteException, UserDoesNotExistException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -103,16 +100,17 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws RetrievePassword418, RemoteException {
+    public void retrieve_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        Assert.assertEquals(pw, password.getBytes());
+        Assert.assertArrayEquals(pw, password.getBytes());
+
     }
 
     @Test
-    public void retrive_altered_password() throws SavePassword418, RetrievePassword418, RemoteException {
+    public void retrive_altered_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -120,8 +118,6 @@ public class PwmLibTest {
         String password2 = "testPass2";
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        Assert.assertEquals(pw, password2.getBytes());
+        Assert.assertArrayEquals(pw, password2.getBytes());
     }
-
-    */
 }
