@@ -1,5 +1,6 @@
 package pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions;
 
+import java.security.Key;
 import java.util.UUID;
 
 public class UserAlreadyExistsException extends Exception {
@@ -8,16 +9,16 @@ public class UserAlreadyExistsException extends Exception {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	private UUID userId;
 
-	public UserAlreadyExistsException(UUID user) {
-		userId = user;
+	private Key _publickey;
+
+	public UserAlreadyExistsException(Key publicKey) {
+		publicKey = publicKey;
+
 	}
 
 	@Override
 	public String getMessage() {
-		return "The user '" + userId + "' already exists.";
+		return "The publickey '" + _publickey.toString() + "has already been registered.";
 	}
-	
 }

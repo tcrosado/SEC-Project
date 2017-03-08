@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

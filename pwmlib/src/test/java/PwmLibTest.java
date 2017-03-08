@@ -5,15 +5,16 @@ import org.junit.Test;
 
 
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.RegisterUser418;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.RetrievePassword418;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.SavePassword418;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.UserAlreadyExistsException;
+import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.UUID;
 
 /**
@@ -39,11 +40,6 @@ public class PwmLibTest {
 
         _keystore.load(null, password);
 
-        _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore, _keystorepw.toCharArray());
-
-        _userID = _pwmlib.register_user();
-
     }
 
     @After
@@ -51,6 +47,43 @@ public class PwmLibTest {
         _pwmlib.close();
     }
 
+    @Test
+    public void testeverything() throws RemoteException, NotBoundException, UnrecoverableKeyException, UserAlreadyExistsException, NoSuchAlgorithmException, KeyStoreException, UserDoesNotExistException, PasswordDoesNotExistException {
+
+        _pwmlib = new PwmLib();
+        _pwmlib.init(_keystore, _keystorepw.toCharArray());
+
+        _userID = _pwmlib.register_user();
+
+        String domain = "www.google.pt";
+        String username = "testUser";
+        String password = "testPass";
+        String password2 = "testPass2";
+
+        System.out.println("Testeverything -> UserID: " + _userID);
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
+        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+
+        System.out.println("Testeverything -> PasswordEnviada: " + password);
+        System.out.println("Testeverything -> PasswordObtida: " + new String(pw));
+        Assert.assertEquals(password, new String(pw));
+
+        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+        pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+
+        System.out.println("Testeverything -> PasswordEnviada: " + password2);
+        System.out.println("Testeverything -> PasswordObtida: " + new String(pw));
+        Assert.assertEquals(password2, new String(pw));
+    }
+
+
+
+
+
+
+
+
+/*
     @Test
     public void register_user() throws RegisterUser418, UserAlreadyExistsException, pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException {
 
@@ -90,4 +123,5 @@ public class PwmLibTest {
         Assert.assertEquals(pw, password2.getBytes());
     }
 
+    */
 }

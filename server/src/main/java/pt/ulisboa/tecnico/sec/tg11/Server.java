@@ -126,8 +126,9 @@ public class Server implements PWMInterface {
 			List<Login> log = new ArrayList<Login>();
 			_userlogin.put(user, log);
 		}
-		else
-			throw new UserAlreadyExistsException(user);
+		else {
+            throw new UserAlreadyExistsException(publicKey);
+        }
 		
 		return user;
 	}
