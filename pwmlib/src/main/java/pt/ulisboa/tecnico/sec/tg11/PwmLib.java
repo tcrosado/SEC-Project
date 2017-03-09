@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.Message;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
@@ -25,41 +26,7 @@ public class PwmLib {
 
 
     public static void main(String[] args) throws IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NotBoundException, UserAlreadyExistsException, PasswordDoesNotExistException,  KeyStoreException, UserDoesNotExistException {
-        test();
 
-    }
-
-    public static void test() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NotBoundException, UserAlreadyExistsException, UserDoesNotExistException, PasswordDoesNotExistException, UnrecoverableKeyException {
-        PwmLib _pwmlib = new PwmLib();
-        KeyStore _keystore;
-        String _keystorepw;
-        UUID _userID;
-
-        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "example";
-
-        // get user password and file input stream
-        char[] _password = _keystorepw.toCharArray();
-
-        _keystore.load(null, _password);
-
-        _pwmlib.init(_keystore, _keystorepw.toCharArray());
-
-        _userID = _pwmlib.register_user();
-
-        String domain = "www.google.pt";
-        String username = "testUser";
-        String password = "testPass";
-        String password2 = "testPass2";
-
-        //System.out.println("Teste main -> UserID: " + _userID);
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
-        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        //System.out.println("Teste main -> PasswordObtida: " + new String(pw));
-
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-        pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        //System.out.println("Teste main -> PasswordObtida2: " + new String(pw));
     }
 
 
@@ -92,6 +59,10 @@ public class PwmLib {
 
         //System.out.println("save_password -> UserID: " + userID);
         //System.out.println("save_password -> domain: " + new String(domain));
+    	Message m = new Message();
+    	m.addContent("domain", domain, _publicKey);
+    	m.addContent("username", username, _publicKey);
+    	m.addContent("password", password, _publicKey);
         server.put(userID ,domain,username,password);
     }
 
