@@ -3,15 +3,16 @@ import org.junit.*;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.io.FileInputStream;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.util.UUID;
 
 /**
@@ -39,7 +40,7 @@ public class PwmLibTest {
         _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
 
         _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore);
+        _pwmlib.init(_keystore,_keystorepw.toCharArray());
 
         _userID = _pwmlib.register_user();
 
@@ -92,7 +93,7 @@ public class PwmLibTest {
    */
 
     @Test
-    public void save_password() throws RemoteException, UserDoesNotExistException {
+    public void save_password() throws RemoteException, UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -111,7 +112,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrive_altered_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public void retrive_altered_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";

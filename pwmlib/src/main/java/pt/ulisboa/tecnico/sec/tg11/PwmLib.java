@@ -1,8 +1,12 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.Message;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.print.DocFlavor;
 import java.io.IOException;
 import java.rmi.NotBoundException;
@@ -22,8 +26,11 @@ public class PwmLib {
     private KeyStore ks = null;
     private UUID userID = null;
     private PWMInterface server = null;
+    private Key publicKey;
 
-    public void init(KeyStore ks) throws RemoteException, NotBoundException {
+
+
+    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -32,6 +39,8 @@ public class PwmLib {
         issued at the client side, until a close() function is called.
         */
         this.ks = ks;
+        this.ksPassword = password;
+        this.publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         server = (PWMInterface) registry.lookup("PWMServer");
     }
@@ -44,13 +53,17 @@ public class PwmLib {
         return userID;
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws  RemoteException, UserDoesNotExistException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         /*Specification: stores the triple (domain, username, password) on the server. This corresponds
         to an insertion if the (domain, username) pair is not already known by the server, or to an update otherwise.
         */
 
         //System.out.println("save_password -> UserID: " + userID);
         //System.out.println("save_password -> domain: " + new String(domain));
+    	Message m = new Message();
+        m.addContent("domain", domain, publicKey);
+    	m.addContent("username", username, publicKey);
+    	m.addContent("password", password, publicKey);
         server.put(userID ,domain,username,password);
     }
 
