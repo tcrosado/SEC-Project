@@ -1,46 +1,46 @@
 package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.security.*;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SealedObject;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Message {
 	
 	private Map<String, byte[]> _content;
 	private Timestamp _timestamp;
 	private UUID _userid;
+	private byte[] _hmac;
+	private SecureRandom _nonce;
 	
 	public Message(){
+		_nonce = new SecureRandom();
 		_content = new HashMap<String, byte[]>();
-		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());		
-		
+		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
 	}
 	
 	public Message(UUID uid){
 		_userid = uid;
+		_nonce = new SecureRandom();
+		_content = new HashMap<String, byte[]>();
+		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
 	}
 	
 	public UUID getUserId(){
 		return _userid;
 	}
 	
-	public void addContent(String name, byte[] value, Key publicKey) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
-		
-		byte[] v = cipherValue(value, publicKey);
-		_content.put(name, v);
+	public void addContent(String name, byte[] value, Key publicKey){
+		_content.put(name, value);
 	}
 	
 	public byte[] getContent(String name, Key privateKey) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
@@ -72,4 +72,41 @@ public class Message {
 	    return v;
 	}
 
+	public void cipherContent(Key publicKey) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
+
+		Map<String, byte[]> content = new HashMap<String, byte[]>();
+		for (Map.Entry<String, byte[]> entry : _content.entrySet()) {
+			String key = entry.getKey();
+			byte[] value = entry.getValue();
+			byte[] v = cipherValue(value, publicKey);
+			content.put(key, v);
+		}
+		_content = content;
+	}
+
+	public void generateHMac(Key privateKey) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
+		SecretKeySpec keySpec = new SecretKeySpec(privateKey.getEncoded(), "HmacSHA1");
+
+		Mac mac = Mac.getInstance("HmacSHA256");
+		mac.init(keySpec);
+
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		ObjectOutputStream out = new ObjectOutputStream(byteStream);
+		out.writeObject(_content);
+		out.writeObject(_timestamp);
+		out.writeObject(_nonce);
+
+		byte[] result = mac.doFinal(byteStream.toByteArray());
+		_hmac = result;
+	}
+
+	public boolean verifyHMac(Key publicKey){
+		Mac mac = Mac.getInstance("HmacSHA256");
+		mac.init(publicKey,);
+	}
+
+	public void buildFinalMessage(Key publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
+		cipherContent(publicKey);
+		generateHMac(privateKey);
+	}
 }
