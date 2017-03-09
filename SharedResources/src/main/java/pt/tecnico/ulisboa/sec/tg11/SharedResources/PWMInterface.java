@@ -1,13 +1,14 @@
-package pt.tecnico.ulisboa.sec.tg11.PWInterface;
+package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
 import java.rmi.RemoteException;
 import java.security.Key;
 import java.util.UUID;
-import java.rmi.Remote;
 
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.PasswordDoesNotExistException;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.PasswordDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserAlreadyExistsException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserDoesNotExistException;
+
+import java.rmi.Remote;
 
 
 

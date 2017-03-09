@@ -2,8 +2,9 @@ package pt.ulisboa.tecnico.sec.tg11;
 
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
+
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.Login;
 
 import java.rmi.Remote;
@@ -79,7 +80,7 @@ public class Server implements PWMInterface {
             if(!login_list.isEmpty()){
                 for (Login l: login_list) {
                     if((Arrays.equals(l.getDomain(),domain)) && Arrays.equals(l.getUsername(),username)){
-                    	l.setPassword(password);
+                   	l.setPassword(password);
                     	_userlogin.replace(userID, login_list);
                     	return;
                     }

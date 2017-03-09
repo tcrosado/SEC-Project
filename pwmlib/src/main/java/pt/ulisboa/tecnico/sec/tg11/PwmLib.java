@@ -1,10 +1,7 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.PasswordDoesNotExistException;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
 import javax.print.DocFlavor;
 import java.io.IOException;

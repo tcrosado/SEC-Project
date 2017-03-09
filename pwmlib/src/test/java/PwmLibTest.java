@@ -1,8 +1,7 @@
 import org.junit.*;
 
-
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 

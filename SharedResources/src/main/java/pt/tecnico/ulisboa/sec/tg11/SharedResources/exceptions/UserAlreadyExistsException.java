@@ -1,4 +1,4 @@
-package pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions;
+package pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions;
 
 import java.security.Key;
 import java.util.UUID;

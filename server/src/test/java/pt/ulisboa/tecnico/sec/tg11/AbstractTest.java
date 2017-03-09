@@ -4,8 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.PWMInterface;
-import pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.*;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
