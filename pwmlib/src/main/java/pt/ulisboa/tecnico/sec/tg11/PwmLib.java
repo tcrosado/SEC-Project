@@ -17,53 +17,13 @@ import java.util.UUID;
  * Created by trosado on 01/03/17.
  */
 public class PwmLib {
-    private final String CLIENT_PUBLIC_KEY = "CLIENT_PUBLIC_KEY";
+    private final String CLIENT_PUBLIC_KEY = "privatekey";
     private char[] ksPassword;
     private KeyStore ks = null;
     private UUID userID = null;
     private PWMInterface server = null;
 
-
-    public static void main(String[] args) throws IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NotBoundException, UserAlreadyExistsException, PasswordDoesNotExistException,  KeyStoreException, UserDoesNotExistException {
-        test();
-
-    }
-
-    public static void test() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NotBoundException, UserAlreadyExistsException, UserDoesNotExistException, PasswordDoesNotExistException, UnrecoverableKeyException {
-        PwmLib _pwmlib = new PwmLib();
-        KeyStore _keystore;
-        String _keystorepw;
-        UUID _userID;
-
-        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "example";
-
-        // get user password and file input stream
-        char[] _password = _keystorepw.toCharArray();
-
-        _keystore.load(null, _password);
-
-        _pwmlib.init(_keystore, _keystorepw.toCharArray());
-
-        _userID = _pwmlib.register_user();
-
-        String domain = "www.google.pt";
-        String username = "testUser";
-        String password = "testPass";
-        String password2 = "testPass2";
-
-        //System.out.println("Teste main -> UserID: " + _userID);
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
-        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        //System.out.println("Teste main -> PasswordObtida: " + new String(pw));
-
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-        pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        //System.out.println("Teste main -> PasswordObtida2: " + new String(pw));
-    }
-
-
-    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException {
+    public void init(KeyStore ks) throws RemoteException, NotBoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -72,7 +32,6 @@ public class PwmLib {
         issued at the client side, until a close() function is called.
         */
         this.ks = ks;
-        this.ksPassword = password;
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         server = (PWMInterface) registry.lookup("PWMServer");
     }
@@ -81,7 +40,7 @@ public class PwmLib {
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
         //System.out.println("register_user -> client_public_key: " + ks.getKey(CLIENT_PUBLIC_KEY,ksPassword));
-        this.userID = server.register(ks.getKey(CLIENT_PUBLIC_KEY,ksPassword));
+        this.userID = server.register(ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey());
         return userID;
     }
 

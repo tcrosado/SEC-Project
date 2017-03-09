@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import java.io.FileInputStream;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.KeyStore;
@@ -18,6 +19,7 @@ import java.util.UUID;
  */
 public class PwmLibTest {
 
+    private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
     private static KeyStore _keystore;
     private static PwmLib _pwmlib;
     private static String _keystorepw;
@@ -29,15 +31,15 @@ public class PwmLibTest {
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
 
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "example";
+        _keystorepw = "1234567";
 
         // get user password and file input stream
         char[] password = _keystorepw.toCharArray();
 
-        _keystore.load(null, password);
+        _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
 
         _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore, _keystorepw.toCharArray());
+        _pwmlib.init(_keystore);
 
         _userID = _pwmlib.register_user();
 

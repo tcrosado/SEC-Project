@@ -32,7 +32,6 @@ public abstract class AbstractTest {
 		try {
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
 			serverRemote = (PWMInterface) registry.lookup("PWMServer");
-			System.out.println("Connected to Server");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -69,7 +69,6 @@ public class ServerTest extends AbstractTest{
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
-		System.out.println("UserID: "+userID);  //DEBUGGING MODE ISEL #EASYWAY
 		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
 		byte[] result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password.getBytes(),result);
@@ -84,12 +83,10 @@ public class ServerTest extends AbstractTest{
 		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
 		byte[] result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		
-		System.out.println("RESULTADO1: "+new String(result));
 		assertArrayEquals(password.getBytes(),result);
 
 		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password2.getBytes());
 		result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
-		System.out.println("RESULTADO2: "+new String(result));
 		assertArrayEquals(password2.getBytes(),result);
 	}
 
