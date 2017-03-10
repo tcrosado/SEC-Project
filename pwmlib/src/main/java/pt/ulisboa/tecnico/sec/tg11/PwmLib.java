@@ -61,9 +61,9 @@ public class PwmLib {
         //System.out.println("save_password -> UserID: " + userID);
         //System.out.println("save_password -> domain: " + new String(domain));
     	Message m = new Message();
-        m.addContent("domain", domain, publicKey);
-    	m.addContent("username", username, publicKey);
-    	m.addContent("password", password, publicKey);
+        m.addContent("domain", domain);
+    	m.addContent("username", username);
+    	m.addContent("password", password);
         server.put(userID ,domain,username,password);
     }
 
