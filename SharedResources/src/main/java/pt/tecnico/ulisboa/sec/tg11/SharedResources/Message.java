@@ -45,7 +45,7 @@ class Message {
 		_userid = uid;
 	}
 	
-	UUID getUserId(){
+	UUID getUserID(){
 		return _userid;
 	}
 	

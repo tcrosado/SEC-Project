@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
 import java.rmi.RemoteException;
@@ -14,6 +15,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.util.UUID;
 
@@ -33,6 +35,8 @@ public class ServerTest extends AbstractTest{
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
+		MessageManager m = new MessageManager(userID, keypair.getPrivate());
+
 		serverRemote.put(userID,domain.getBytes(),username.getBytes(),password.getBytes());
 	}
 
