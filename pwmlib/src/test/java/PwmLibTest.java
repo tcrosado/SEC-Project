@@ -97,7 +97,6 @@ public class PwmLibTest {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
-        //System.out.println("Teste 2 -> UserID: " + _userID);
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 

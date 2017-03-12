@@ -112,6 +112,6 @@ public class MessageManager {
 		if(sign.verify(_msg.getSignature()))
 			return;
 		else
-			throw new InvalidSignatureException();
+			throw new InvalidSignatureException(_msg.getSignature());
 	}
 }
