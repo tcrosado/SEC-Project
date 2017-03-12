@@ -10,8 +10,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -31,7 +29,7 @@ public class MessageManager {
 		ByteArrayInputStream b = new ByteArrayInputStream(msg);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
-		verifySignature();
+
 
 	}
 	
@@ -83,6 +81,9 @@ public class MessageManager {
 		return _msg.getContent(key);
 	}
 
+	public UUID getUserID(){
+		return _msg.getUserID();
+	}
 
 	private byte[] serializeContent() throws IOException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -90,9 +91,10 @@ public class MessageManager {
 		obj.writeObject(_msg.getAllContent());
 		obj.writeObject(_msg.getNonce());
 		obj.writeObject(_msg.getTimestamp());
-		obj.writeObject(_msg.getUserId());
+		obj.writeObject(_msg.getUserID());
 		return b.toByteArray();
 	}
+
 	
 	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
 		
@@ -103,10 +105,10 @@ public class MessageManager {
 	}
 
 	
-	public void verifySignature() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException {
+	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initVerify((PublicKey) _destPublicKey);
+		sign.initVerify((PublicKey) key);
 		sign.update(serializeContent());
 
 		if(sign.verify(_msg.getSignature()))
