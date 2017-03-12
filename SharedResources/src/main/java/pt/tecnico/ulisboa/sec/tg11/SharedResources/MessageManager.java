@@ -24,7 +24,8 @@ public class MessageManager {
 	Message _msg;
 	Key _orgPrivateKey;
 	Key _destPublicKey;
-
+	
+	//RECEIVES MESSAGE
 	public MessageManager(byte[] message,Key originPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
 		_orgPrivateKey = originPrivateKey;
 		byte[] msg = decipherValue(message,_orgPrivateKey);
@@ -35,12 +36,14 @@ public class MessageManager {
 
 	}
 	
+	//SERVER SEND MESSAGE
 	public MessageManager(Key originPrivateKey, Key destinationPublicKey){
 		_orgPrivateKey = originPrivateKey;
 		_destPublicKey = destinationPublicKey;
 		_msg = new Message();
 	}
-
+	
+	//CLIENT SEND MESSAGE
 	public MessageManager(UUID userid, Key privateKey, Key destinationPublicKey){
 		_orgPrivateKey = privateKey;
 		_destPublicKey = destinationPublicKey;

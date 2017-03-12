@@ -44,7 +44,7 @@ public class PwmLib {
         this.ks = ks;
         this.ksPassword = password;
         this.publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        this._privateKey = (PrivateKey) ks.getKey(PATH_TO_KEYSTORE, "1234567".toCharArray());
+        this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this.ksPassword);
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         server = (PWMInterface) registry.lookup("PWMServer");
     }
@@ -52,12 +52,12 @@ public class PwmLib {
     public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, RemoteException {
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
-        //System.out.println("register_user -> client_public_key: " + ks.getKey(CLIENT_PUBLIC_KEY,ksPassword));
-        this.userID = server.register(ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey());
+     
+        this.userID = server.register(publicKey);
         return userID;
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
         /*Specification: stores the triple (domain, username, password) on the server. This corresponds
         to an insertion if the (domain, username) pair is not already known by the server, or to an update otherwise.
         */
@@ -68,21 +68,26 @@ public class PwmLib {
         content.putContent("username",username);
         content.putContent("password",password);
 
-        server.put(userID ,domain,username,password);
+        server.put(content.getMessage());
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
-
-        return server.get(userID,domain,username);
+    	
+    	MessageManager content = new MessageManager(userID, _privateKey, publicKey);
+    	content.putContent("domain", domain);
+    	content.putContent("username", username);
+    	
+        return server.get(content.getMessage());
 
     }
 
     public void close(){
         /*  concludes the current session of commands with the client library. */
+    	
 
     }
 
