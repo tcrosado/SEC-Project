@@ -10,6 +10,7 @@ import javax.crypto.NoSuchPaddingException;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.*;
@@ -93,16 +94,15 @@ public class PwmLibTest {
    */
 
     @Test
-    public void save_password() throws RemoteException, UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
+    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
-        //System.out.println("Teste 2 -> UserID: " + _userID);
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 
     @Test
-    public void retrieve_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -112,7 +112,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrive_altered_password() throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
+    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
