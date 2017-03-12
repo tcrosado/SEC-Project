@@ -14,43 +14,55 @@ import java.util.UUID;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Message {
+class Message {
 	
 	private Map<String, byte[]> _content;
 	private Timestamp _timestamp;
 	private UUID _userid;
 	private SecureRandom _nonce;
+
+	private byte[] _signature;
+
+	byte[] getSignature() {
+		return _signature;
+	}
+
+	 void setSignature(byte[] _signature) {
+		this._signature = _signature;
+	}
+
+
 	
-	public Message(){
+	Message(){
 		Calendar cal = Calendar.getInstance();
 		_nonce = new SecureRandom();
 		_content = new HashMap<String, byte[]>();
 		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
 	}
 	
-	public Message(UUID uid){
+	Message(UUID uid){
 		this();
 		_userid = uid;
 	}
 	
-	public UUID getUserId(){
+	UUID getUserId(){
 		return _userid;
 	}
 	
-	public void addContent(String name, byte[] value){
+	void addContent(String name, byte[] value){
 		_content.put(name, value);
 	}
 	
-	public byte[] getContent(String name){
+	byte[] getContent(String name){
 		
 		return _content.get(name);
 	}
 	
-	public Timestamp getTimestamp(){
+	Timestamp getTimestamp(){
 		return _timestamp;
 	}
 
-	public Map<String, byte[]> getAllContent(){
+	Map<String, byte[]> getAllContent(){
 		return _content;
 	}
 	
@@ -62,8 +74,5 @@ public class Message {
 		return _nonce;
 	}
 
-	/*public void buildFinalMessage(Key publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
-		cipherContent(publicKey);
-		generateHMac(privateKey);
-	}*/
+
 }

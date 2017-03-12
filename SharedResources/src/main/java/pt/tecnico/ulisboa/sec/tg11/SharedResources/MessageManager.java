@@ -1,18 +1,15 @@
 package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
+
+import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -20,23 +17,31 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
-public class SecureMessage {
+public class MessageManager {
 	
 	Message _msg;
 	Key _orgPrivateKey;
 	Key _destPublicKey;
+
+	public MessageManager(byte[] message,Key originPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+		_orgPrivateKey = originPrivateKey;
+		byte[] msg = decipherValue(message,_orgPrivateKey);
+		ByteArrayInputStream b = new ByteArrayInputStream(msg);
+		ObjectInputStream obj = new ObjectInputStream(b);
+		_msg = (Message) obj.readObject();
+		verifySignature();
+
+	}
 	
-	public SecureMessage(Key originPrivateKey,Key destinationPublicKey){
+	public MessageManager(Key originPrivateKey, Key destinationPublicKey){
 		_orgPrivateKey = originPrivateKey;
 		_destPublicKey = destinationPublicKey;
 		_msg = new Message();
 	}
 
-	public SecureMessage(UUID userid,Key privateKey,Key destinationPublicKey){
+	public MessageManager(UUID userid, Key privateKey, Key destinationPublicKey){
 		_orgPrivateKey = privateKey;
 		_destPublicKey = destinationPublicKey;
 		_msg = new Message(userid);
@@ -61,22 +66,8 @@ public class SecureMessage {
 	    return v;
 	}
 
-	public void cipherMessageContent(Key key) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
-
-		Map<String, byte[]> aux_content = new HashMap<String, byte[]>();
-		Map<String, byte[]> content = _msg.getAllContent();
-		
-		for (Map.Entry<String, byte[]> entry : content.entrySet()) {
-			String k = entry.getKey();
-			byte[] value = entry.getValue();
-			byte[] v = cipherValue(value, key);
-			aux_content.put(k, v);
-		}
-		
-		_msg.setAllContent(aux_content);
-	}
-
-	public byte[] getMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
+	public byte[] getMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException {
+		generateSignature();
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
@@ -88,24 +79,39 @@ public class SecureMessage {
 		_msg.addContent(key,this.cipherValue(value,_orgPrivateKey));
 	}
 
-	
-	public byte[] generateSignature(Key key, byte[] value) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException{
-		
-		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initSign((PrivateKey) key);
-		sign.update(value);
-		
-		byte[] result = sign.sign();
-		return result;
+	public byte[] getContent(String key){
+		return _msg.getContent(key);
+	}
+
+
+	private byte[] serializeContent() throws IOException {
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		ObjectOutputStream obj = new ObjectOutputStream(b);
+		obj.writeObject(_msg.getAllContent());
+		obj.writeObject(_msg.getNonce());
+		obj.writeObject(_msg.getTimestamp());
+		obj.writeObject(_msg.getUserId());
+		return b.toByteArray();
 	}
 	
-	public boolean verifySignature(Key key, byte[] signature, byte[] value) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException{
+	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initVerify((PublicKey) key);
-		sign.update(value);
+		sign.initSign((PrivateKey) _orgPrivateKey);
+		sign.update(serializeContent());
+		_msg.setSignature(sign.sign());
+	}
+
+	
+	public void verifySignature() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException {
 		
-		boolean verifies = sign.verify(signature);
-		return verifies;
+		Signature sign = Signature.getInstance("SHA256withRSA");
+		sign.initVerify((PublicKey) _destPublicKey);
+		sign.update(serializeContent());
+
+		if(sign.verify(_msg.getSignature()))
+			return;
+		else
+			throw new InvalidSignatureException();
 	}
 }
