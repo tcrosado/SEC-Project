@@ -29,6 +29,7 @@ public class PwmLib {
     private PWMInterface server = null;
     private PublicKey publicKey;
     private PrivateKey _privateKey;
+    public PublicKey serverKey;
     
 
 
