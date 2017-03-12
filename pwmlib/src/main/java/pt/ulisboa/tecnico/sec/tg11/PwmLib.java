@@ -8,6 +8,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.print.DocFlavor;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -15,6 +18,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 /**
@@ -23,6 +28,7 @@ import java.util.UUID;
 public class PwmLib {
     private final String CLIENT_PUBLIC_KEY = "privatekey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
+    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
     private char[] ksPassword;
     private KeyStore ks = null;
     private UUID userID = null;
@@ -33,8 +39,7 @@ public class PwmLib {
     
 
 
-
-    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -42,6 +47,13 @@ public class PwmLib {
         These keys maintained by the key store will be the ones used in the following session of commands
         issued at the client side, until a close() function is called.
         */
+    	
+    	FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
+    	CertificateFactory f = CertificateFactory.getInstance("X.509");
+    	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
+    	
+    	serverKey = certificate.getPublicKey();
+    	
         this.ks = ks;
         this.ksPassword = password;
         this.publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
@@ -64,7 +76,7 @@ public class PwmLib {
         */
     	
     	
-        MessageManager content = new MessageManager(userID, _privateKey, publicKey);
+        MessageManager content = new MessageManager(userID, _privateKey, serverKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
@@ -78,7 +90,7 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	MessageManager content = new MessageManager(userID, _privateKey, publicKey);
+    	MessageManager content = new MessageManager(userID, _privateKey, serverKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
