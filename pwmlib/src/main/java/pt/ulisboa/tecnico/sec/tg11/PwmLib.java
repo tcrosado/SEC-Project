@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.tg11;
 
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.Message;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.SecureMessage;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
 import javax.crypto.BadPaddingException;
@@ -60,10 +61,11 @@ public class PwmLib {
 
         //System.out.println("save_password -> UserID: " + userID);
         //System.out.println("save_password -> domain: " + new String(domain));
-    	Message m = new Message();
-        m.addContent("domain", domain);
-    	m.addContent("username", username);
-    	m.addContent("password", password);
+        SecureMessage content = new SecureMessage(,userID);
+        content.putContent("domain",domain);
+        content.putContent("username",username);
+        content.putContent("password",password);
+
         server.put(userID ,domain,username,password);
     }
 

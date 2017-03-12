@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -22,11 +23,21 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecureMessage {
 	
 	Message _msg;
+	Key _orgPrivateKey;
+	Key _destPublicKey;
 	
-	public SecureMessage(Message m){
-		_msg = m;
+	public SecureMessage(Key originPrivateKey,Key destinationPublicKey){
+		_orgPrivateKey = originPrivateKey;
+		_destPublicKey = destinationPublicKey;
+		_msg = new Message();
 	}
-	
+
+	public SecureMessage(UUID userid,Key privateKey,Key destinationPublicKey){
+		_orgPrivateKey = privateKey;
+		_destPublicKey = destinationPublicKey;
+		_msg = new Message(userid);
+	}
+
 	public byte[] cipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
 			
 		Cipher c = Cipher.getInstance("RSA");
@@ -45,15 +56,7 @@ public class SecureMessage {
 	    
 	    return v;
 	}
-	
-	public Timestamp generateTimeStamp(){
-		return new Timestamp(Calendar.getInstance().getTimeInMillis());
-	}
-	
-	public SecureRandom generateNonce(){
-		return new SecureRandom();
-	}
-	
+
 	public void cipherMessageContent(Key key) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
 
 		Map<String, byte[]> aux_content = new HashMap<String, byte[]>();
@@ -68,6 +71,19 @@ public class SecureMessage {
 		
 		_msg.setAllContent(aux_content);
 	}
+
+	public byte[] getMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
+		ByteArrayOutputStream b  = new ByteArrayOutputStream();
+		ObjectOutputStream obj = new ObjectOutputStream(b);
+		obj.writeObject(_msg);
+
+		return this.cipherValue(b.toByteArray(),_destPublicKey);
+	}
+
+	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
+		_msg.addContent(key,this.cipherValue(value,_orgPrivateKey));
+	}
+
 	
 	public byte[] generateHMac(Key key) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
 		

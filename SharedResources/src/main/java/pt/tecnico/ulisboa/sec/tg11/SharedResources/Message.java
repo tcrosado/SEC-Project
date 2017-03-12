@@ -20,19 +20,17 @@ public class Message {
 	private Timestamp _timestamp;
 	private UUID _userid;
 	private SecureRandom _nonce;
-	private SecureMessage security = new SecureMessage(this);
 	
 	public Message(){
-		_nonce = security.generateNonce();
+		Calendar cal = Calendar.getInstance();
+		_nonce = new SecureRandom();
 		_content = new HashMap<String, byte[]>();
-		_timestamp = security.generateTimeStamp();
+		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
 	}
 	
 	public Message(UUID uid){
+		this();
 		_userid = uid;
-		_nonce = security.generateNonce();
-		_content = new HashMap<String, byte[]>();
-		_timestamp = security.generateTimeStamp();
 	}
 	
 	public UUID getUserId(){
@@ -51,11 +49,7 @@ public class Message {
 	public Timestamp getTimestamp(){
 		return _timestamp;
 	}
-	
-	public void setTimestamp(Timestamp t){
-		_timestamp = t;
-	}
-	
+
 	public Map<String, byte[]> getAllContent(){
 		return _content;
 	}
