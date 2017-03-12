@@ -6,7 +6,11 @@ import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -85,20 +89,23 @@ public class SecureMessage {
 	}
 
 	
-	public byte[] generateHMac(Key key) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
+	public byte[] generateSignature(Key key, byte[] value) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException{
 		
-		SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "HmacSHA1");
-
-		Mac mac = Mac.getInstance("HmacSHA256");
-		mac.init(keySpec);
-
-		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-		ObjectOutputStream out = new ObjectOutputStream(byteStream);
-		out.writeObject(_msg.getAllContent());
-		out.writeObject(_msg.getTimestamp());
-		out.writeObject(_msg.getNonce());
-
-		byte[] result = mac.doFinal(byteStream.toByteArray());
+		Signature sign = Signature.getInstance("SHA256withRSA");
+		sign.initSign((PrivateKey) key);
+		sign.update(value);
+		
+		byte[] result = sign.sign();
 		return result;
+	}
+	
+	public boolean verifySignature(Key key, byte[] signature, byte[] value) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException{
+		
+		Signature sign = Signature.getInstance("SHA256withRSA");
+		sign.initVerify((PublicKey) key);
+		sign.update(value);
+		
+		boolean verifies = sign.verify(signature);
+		return verifies;
 	}
 }
