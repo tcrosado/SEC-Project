@@ -4,6 +4,7 @@ package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.*;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
-class Message {
+class Message implements Serializable{
 	
 	private Map<String, byte[]> _content;
 	private Timestamp _timestamp;
