@@ -40,16 +40,17 @@ public class RSAMessageManager {
 	}
 	
 	//SERVER SEND MESSAGE
-	public RSAMessageManager(Key originPrivateKey, Key destinationPublicKey){
-		_srcPrivateKey = originPrivateKey;
-		_destPublicKey = destinationPublicKey;
+	public RSAMessageManager(Key srcPrivateKey, Key destPublicKey){
+		_srcPrivateKey = srcPrivateKey;
+		_destPublicKey = destPublicKey;
 		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
-	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey, Key sessionKey){
+	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey, Key destPublicKey){
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
+		_destPublicKey = destPublicKey;
 		_msg = new Message(userid);
 	}
 

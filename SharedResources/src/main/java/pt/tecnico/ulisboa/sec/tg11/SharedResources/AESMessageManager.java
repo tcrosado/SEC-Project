@@ -1,9 +1,6 @@
 package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -31,16 +28,51 @@ public class AESMessageManager {
 	private Key _destPublicKey;
 	private Key _srcPublicKey;
 	private Key _sessionKey;
+    private UUID _userID;
 	private static final int AES_KEYLENGTH = 128;
 	
 	//CLIENT SEND FIRST MESSAGE
 	public AESMessageManager(UUID userid, Key sessionKey, Key srcPrivateKey, Key destinationPublicKey, Key srcPublicKey){
-		_sessionKey = sessionKey;
+		_userID = userid;
+        _sessionKey = sessionKey;
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
 		_destPublicKey = destinationPublicKey;
 		_msg = new Message(userid);
 	}
+
+    //RECEIVES MESSAGE
+    public AESMessageManager(byte[] message, Key sessionKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException, InvalidAlgorithmParameterException {
+        _sessionKey = sessionKey;
+        byte[] msg = aesDecipherValue(message);
+        ByteArrayInputStream b = new ByteArrayInputStream(msg);
+        ObjectInputStream obj = new ObjectInputStream(b);
+        _msg = (Message) obj.readObject();
+    }
+
+
+    public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException {
+		generateSignature();
+		ByteArrayOutputStream b  = new ByteArrayOutputStream();
+		ObjectOutputStream obj = new ObjectOutputStream(b);
+		obj.writeObject(_msg);
+
+
+		return this.aesCipherValue(b.toByteArray());
+	}
+
+	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, IOException {
+
+		_msg.addContent(key,this.aesCipherValue(value));
+	}
+
+    public byte[] getContent(String key){
+        return _msg.getContent(key);
+    }
+
+    public UUID getUserID(){
+        return _msg.getUserID();
+    }
 	
 	private byte[] aesCipherValue(byte[] value) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException {
 		
@@ -100,20 +132,7 @@ public class AESMessageManager {
 		
 	}
 	
-	public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException {
-		generateSignature();
-		ByteArrayOutputStream b  = new ByteArrayOutputStream();
-		ObjectOutputStream obj = new ObjectOutputStream(b);
-		obj.writeObject(_msg);
-		
-		
-		return this.aesCipherValue(b.toByteArray());
-	}
 
-	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, IOException {
-		
-		_msg.addContent(key,this.aesCipherValue(value));
-	}
 	
 	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
 		

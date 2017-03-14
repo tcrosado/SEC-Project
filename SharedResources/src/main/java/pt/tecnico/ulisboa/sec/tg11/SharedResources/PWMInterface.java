@@ -25,10 +25,10 @@ public interface PWMInterface extends Remote{
 	
 	UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException;
 
-    void put(byte[] msg) throws RemoteException, UserDoesNotExistException;
+    void put(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException;
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
-    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException;
+    byte[] get(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException;
     /*UUID userID, byte[] domain, byte[] username*/
     
     void receiveSessionKey(byte[] message) throws RemoteException, InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException;

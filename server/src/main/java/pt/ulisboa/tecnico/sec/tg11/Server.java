@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.AESMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
@@ -85,7 +86,12 @@ public class Server implements PWMInterface {
     }
     
     private void setSessionKey(UUID userID, Key sessionKey){
-    	_sessionKeys.put(userID, sessionKey);
+        if (_sessionKeys.containsKey(userID)){
+            _sessionKeys.replace(userID, sessionKey);
+        }
+        else {
+            _sessionKeys.put(userID, sessionKey);
+        }
     }
 
     public static void main(String [] args) throws UnrecoverableKeyException{
@@ -108,12 +114,11 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
+    public void put(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            
-            RSAMessageManager manager = new RSAMessageManager(msg,_privateKey);
-            UUID userID = manager.getUserID();
+            Key sessionKey = _sessionKeys.get(userID);
+            AESMessageManager manager = new AESMessageManager(msg, sessionKey);
             Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
@@ -161,20 +166,21 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
     }
 
 
-    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] get(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
     	/*UUID userID, byte[] domain, byte[] username*/
 
         try {
-           
-            RSAMessageManager manager = new RSAMessageManager(msg,_privateKey);
-            UUID userID = manager.getUserID();
+
+            Key sessionKey = _sessionKeys.get(userID);
+            AESMessageManager manager = new AESMessageManager(msg, sessionKey);
             Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
-
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
@@ -212,6 +218,8 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
         return new byte[0];
     }
@@ -245,7 +253,7 @@ public class Server implements PWMInterface {
 		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, "AES");
 		
 		byte[] byteUserID = manager.getContent("userID");
-		UUID userID = this.asUuid((byteUserID));
+		UUID userID = this.asUuid(byteUserID);
 		
 		if(_userKeys.containsKey(userID))
 			setSessionKey(userID, key);

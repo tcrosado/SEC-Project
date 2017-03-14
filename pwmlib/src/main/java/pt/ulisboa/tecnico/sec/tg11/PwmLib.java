@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.AESMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
@@ -8,7 +9,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
-import javax.print.DocFlavor;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,14 +30,14 @@ import java.util.UUID;
 public class PwmLib {
     private final String CLIENT_PUBLIC_KEY = "privatekey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
-    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
-    private char[] ksPassword;
-    private KeyStore ks = null;
-    private UUID userID = null;
-    private PWMInterface server = null;
-    private PublicKey publicKey;
+    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/_server.cer";
+    private char[] _ksPassword;
+    private KeyStore _ks = null;
+    private UUID _userID = null;
+    private PWMInterface _server = null;
+    private PublicKey _publicKey;
     private PrivateKey _privateKey;
-    public PublicKey serverKey;
+    public PublicKey _serverKey;
     private Key _sessionKey;
     
 
@@ -55,38 +55,37 @@ public class PwmLib {
     	CertificateFactory f = CertificateFactory.getInstance("X.509");
     	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
     	
-    	serverKey = certificate.getPublicKey();
+    	_serverKey = certificate.getPublicKey();
     	
-        this.ks = ks;
-        this.ksPassword = password;
-        this.publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this.ksPassword);
+        this._ks = ks;
+        this._ksPassword = password;
+        this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+        this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-        server = (PWMInterface) registry.lookup("PWMServer");
+        _server = (PWMInterface) registry.lookup("PWMServer");
         
     }
 
     public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException {
-        /*Specification: registers the user on the server, initializing the required data structures to
+        /*Specification: registers the user on the _server, initializing the required data structures to
         securely store the passwords.*/
      
-        this.userID = server.register(publicKey);
+        this._userID = _server.register(_publicKey);
         this.generateAndSendSessionKey();
-        return userID;
+        return _userID;
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
-        /*Specification: stores the triple (domain, username, password) on the server. This corresponds
-        to an insertion if the (domain, username) pair is not already known by the server, or to an update otherwise.
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException {
+        /*Specification: stores the triple (domain, username, password) on the _server. This corresponds
+        to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
-    	
-    	
-        RSAMessageManager content = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
+
+        AESMessageManager content = new AESMessageManager(_userID, _sessionKey, _privateKey, _serverKey, _publicKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
 
-        server.put(content.generateMessage());
+        _server.put(_userID, content.generateMessage());
     }
 
 
@@ -95,11 +94,11 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
+    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey, _serverKey, _publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
-        return server.get(content.generateMessage());
+        return _server.get(_userID, content.generateMessage());
 
     }
     
@@ -114,11 +113,11 @@ public class PwmLib {
     	
     	_sessionKey = kgen.generateKey();
     	
-    	RSAMessageManager msg = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
+    	RSAMessageManager msg = new RSAMessageManager(_userID, _privateKey, _publicKey, _serverKey);
     	msg.putContent("sessionKey", _sessionKey.getEncoded());
-    	msg.putContent("userID", getIdAsByte(msg.getUserID()));
+    	msg.putContent("_userID", getIdAsByte(msg.getUserID()));
     	
-    	server.receiveSessionKey(msg.generateMessage());
+    	_server.receiveSessionKey(msg.generateMessage());
     }
     
     public byte[] getIdAsByte(UUID uuid)
