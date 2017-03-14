@@ -3,81 +3,89 @@ package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
 
 import java.io.*;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
 
-public class MessageManager {
+public class RSAMessageManager {
 	
-	Message _msg;
-	Key _orgPrivateKey;
-	Key _destPublicKey;
+	private Message _msg;
+	private Key _srcPrivateKey;
+	private Key _destPublicKey;
+	private Key _srcPublicKey;
+	
 	
 	//RECEIVES MESSAGE
-	public MessageManager(byte[] message,Key originPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
-		_orgPrivateKey = originPrivateKey;
-		byte[] msg = decipherValue(message,_orgPrivateKey);
+	public RSAMessageManager(byte[] message,Key srcPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+		_srcPrivateKey = srcPrivateKey;
+		byte[] msg = rsaDecipherValue(message,_srcPrivateKey);
 		ByteArrayInputStream b = new ByteArrayInputStream(msg);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
-
-
 	}
 	
 	//SERVER SEND MESSAGE
-	public MessageManager(Key originPrivateKey, Key destinationPublicKey){
-		_orgPrivateKey = originPrivateKey;
+	public RSAMessageManager(Key originPrivateKey, Key destinationPublicKey){
+		_srcPrivateKey = originPrivateKey;
 		_destPublicKey = destinationPublicKey;
 		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
-	public MessageManager(UUID userid, Key privateKey, Key destinationPublicKey){
-		_orgPrivateKey = privateKey;
-		_destPublicKey = destinationPublicKey;
+	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey, Key sessionKey){
+		_srcPublicKey = srcPublicKey;
+		_srcPrivateKey = srcPrivateKey;
 		_msg = new Message(userid);
 	}
 
-	public byte[] cipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
+	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
 			
 		Cipher c = Cipher.getInstance("RSA");
 	    c.init(Cipher.ENCRYPT_MODE, key);
-
+	    
 	    byte[] v  = c.doFinal(value);
 	     
 	    return v;
 	}
 	
-	public byte[] decipherValue(byte[] value, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+	private byte[] rsaDecipherValue(byte[] value, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 		
 		Cipher d = Cipher.getInstance("RSA");
 	    d.init(Cipher.DECRYPT_MODE, key);
+	    
 	    byte[] v = d.doFinal(value);
 	    
 	    return v;
 	}
 
-	public byte[] getMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException {
+	public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException {
 		generateSignature();
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
-
-		return this.cipherValue(b.toByteArray(),_destPublicKey);
+		
+		
+		return this.rsaCipherValue(b.toByteArray(),_destPublicKey);
 	}
 
 	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
-		_msg.addContent(key,this.cipherValue(value,_orgPrivateKey));
+		
+		_msg.addContent(key, value);
 	}
 
 	public byte[] getContent(String key){
@@ -102,7 +110,7 @@ public class MessageManager {
 	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initSign((PrivateKey) _orgPrivateKey);
+		sign.initSign((PrivateKey) _srcPrivateKey);
 		sign.update(serializeContent());
 		_msg.setSignature(sign.sign());
 	}

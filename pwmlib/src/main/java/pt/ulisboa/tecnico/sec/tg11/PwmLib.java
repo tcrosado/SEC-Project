@@ -1,17 +1,19 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.print.DocFlavor;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -36,6 +38,7 @@ public class PwmLib {
     private PublicKey publicKey;
     private PrivateKey _privateKey;
     public PublicKey serverKey;
+    private Key _sessionKey;
     
 
 
@@ -60,13 +63,15 @@ public class PwmLib {
         this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this.ksPassword);
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         server = (PWMInterface) registry.lookup("PWMServer");
+        
     }
 
-    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, RemoteException {
+    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException {
         /*Specification: registers the user on the server, initializing the required data structures to
         securely store the passwords.*/
      
         this.userID = server.register(publicKey);
+        this.generateAndSendSessionKey();
         return userID;
     }
 
@@ -76,12 +81,12 @@ public class PwmLib {
         */
     	
     	
-        MessageManager content = new MessageManager(userID, _privateKey, serverKey);
+        RSAMessageManager content = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
 
-        server.put(content.getMessage());
+        server.put(content.generateMessage());
     }
 
 
@@ -90,17 +95,43 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	MessageManager content = new MessageManager(userID, _privateKey, serverKey);
+    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
-        return server.get(content.getMessage());
+        return server.get(content.generateMessage());
 
+    }
+    
+    private void setSessionKey(Key k){
+    	_sessionKey = k;
+    }
+    
+    private void generateAndSendSessionKey() throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException{
+    	
+    	KeyGenerator kgen = KeyGenerator.getInstance("AES");
+    	kgen.init(128);
+    	
+    	_sessionKey = kgen.generateKey();
+    	
+    	RSAMessageManager msg = new RSAMessageManager(userID, _privateKey, serverKey, publicKey);
+    	msg.putContent("sessionKey", _sessionKey.getEncoded());
+    	msg.putContent("userID", getIdAsByte(msg.getUserID()));
+    	
+    	server.receiveSessionKey(msg.generateMessage());
+    }
+    
+    public byte[] getIdAsByte(UUID uuid)
+    {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
     }
 
     public void close(){
         /*  concludes the current session of commands with the client library. */
-    	
+    	//System.exit(0);
 
     }
 

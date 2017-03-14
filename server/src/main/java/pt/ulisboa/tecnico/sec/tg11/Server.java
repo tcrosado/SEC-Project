@@ -3,10 +3,11 @@ package pt.ulisboa.tecnico.sec.tg11;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.Login;
@@ -14,6 +15,9 @@ import pt.ulisboa.tecnico.sec.tg11.Login;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -39,19 +43,21 @@ public class Server implements PWMInterface {
     private final String KEY_NAME = "privatekey";
     private static KeyStore _keystore;
     private static String _keystorepw;
+    private Map<UUID, Key> _sessionKeys = new HashMap<UUID,Key>();
+    private PrivateKey _privateKey;
 
-	Map<UUID, Key> _userkeys = new HashMap<UUID,Key>();
-	static Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
+	private Map<UUID, Key> _userKeys = new HashMap<UUID,Key>();
+	private static Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
 	
 
     private Registry reg;
     private int port;
 
-    public Server() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public Server() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         this(1099);
     }
 
-    public Server(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    public Server(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         this.port = port;
         reg = LocateRegistry.createRegistry(this.port);
 
@@ -62,6 +68,7 @@ public class Server implements PWMInterface {
         char[] password = _keystorepw.toCharArray();
 
         _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
+        _privateKey = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
     }
 
     public void setUp() throws RemoteException {
@@ -76,8 +83,12 @@ public class Server implements PWMInterface {
         }
 
     }
+    
+    private void setSessionKey(UUID userID, Key sessionKey){
+    	_sessionKeys.put(userID, sessionKey);
+    }
 
-    public static void main(String [] args){
+    public static void main(String [] args) throws UnrecoverableKeyException{
         Server server;
         try {
             server = new Server();
@@ -100,10 +111,10 @@ public class Server implements PWMInterface {
     public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            PrivateKey key = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
-            MessageManager manager = new MessageManager(msg,key);
+            
+            RSAMessageManager manager = new RSAMessageManager(msg,_privateKey);
             UUID userID = manager.getUserID();
-            Key clientKey = _userkeys.get(userID);
+            Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
             byte[] domain = manager.getContent("domain");
@@ -132,11 +143,7 @@ public class Server implements PWMInterface {
             else
                 throw new UserDoesNotExistException(userID);
 
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
         } catch (SignatureException e) {
             e.printStackTrace();
@@ -162,10 +169,10 @@ public class Server implements PWMInterface {
     	/*UUID userID, byte[] domain, byte[] username*/
 
         try {
-            PrivateKey key = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
-            MessageManager manager = new MessageManager(msg,key);
+           
+            RSAMessageManager manager = new RSAMessageManager(msg,_privateKey);
             UUID userID = manager.getUserID();
-            Key clientKey = _userkeys.get(userID);
+            Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
 
@@ -187,11 +194,7 @@ public class Server implements PWMInterface {
             else
                 throw new UserDoesNotExistException(userID);
 
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
         } catch (SignatureException e) {
             e.printStackTrace();
@@ -217,11 +220,11 @@ public class Server implements PWMInterface {
 		
 		UUID user = UUID.randomUUID();
 
-        for(UUID id : _userkeys.keySet())
-            if(_userkeys.get(id).equals(publicKey))
+        for(UUID id : _userKeys.keySet())
+            if(_userKeys.get(id).equals(publicKey))
                 throw new UserAlreadyExistsException(publicKey);
 
-        _userkeys.put(user,publicKey);
+        _userKeys.put(user,publicKey);
         List<Login> log = new ArrayList<Login>();
         _userlogin.put(user, log);
 
@@ -232,5 +235,29 @@ public class Server implements PWMInterface {
 	    reg.unbind(SERVER_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
+	
+	
+	public void receiveSessionKey(byte[] message) throws InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException{
+		
+		RSAMessageManager manager = new RSAMessageManager(message, _privateKey);
+		
+		byte[] byteKey = manager.getContent("sessionKey");
+		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, "AES");
+		
+		byte[] byteUserID = manager.getContent("userID");
+		UUID userID = this.asUuid((byteUserID));
+		
+		if(_userKeys.containsKey(userID))
+			setSessionKey(userID, key);
+		else
+			throw new UserDoesNotExistException(userID);
+	}
+	
+	public UUID asUuid(byte[] bytes) {
+	    ByteBuffer bb = ByteBuffer.wrap(bytes);
+	    long firstLong = bb.getLong();
+	    long secondLong = bb.getLong();
+	    return new UUID(firstLong, secondLong);
+	}
 
 }

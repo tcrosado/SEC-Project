@@ -93,7 +93,7 @@ public class PwmLibTest {
     }
    */
 
-    @Test
+    /*@Test
     public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException {
         String domain = "www.google.pt";
         String username = "testUser";
@@ -109,7 +109,7 @@ public class PwmLibTest {
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
         Assert.assertArrayEquals(pw, password.getBytes());
 
-    }
+    }*/
 
     @Test
     public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException {
