@@ -29,7 +29,7 @@ public class ServerTest extends AbstractTest{
 		userID = serverRemote.register(keypair.getPublic());
 	}
 
-
+/*
 	@Test
 	public void testPut() throws RemoteException, UserDoesNotExistException {
 		String domain = "www.google.pt";
@@ -93,5 +93,6 @@ public class ServerTest extends AbstractTest{
 		result = serverRemote.get(userID,domain.getBytes(),username.getBytes());
 		assertArrayEquals(password2.getBytes(),result);
 	}
+	*/
 
 }

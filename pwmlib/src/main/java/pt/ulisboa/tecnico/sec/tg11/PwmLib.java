@@ -30,7 +30,7 @@ import java.util.UUID;
 public class PwmLib {
     private final String CLIENT_PUBLIC_KEY = "privatekey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
-    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/_server.cer";
+    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
     private char[] _ksPassword;
     private KeyStore _ks = null;
     private UUID _userID = null;
