@@ -1,10 +1,7 @@
 package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.security.*;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -18,9 +15,9 @@ import javax.crypto.spec.SecretKeySpec;
 class Message implements Serializable{
 	
 	private Map<String, byte[]> _content;
-	private Timestamp _timestamp;
+	private byte[] _timestamp;
 	private UUID _userid;
-	private SecureRandom _nonce;
+	private byte[] _nonce;
 
 	private byte[] _signature;
 
@@ -33,16 +30,28 @@ class Message implements Serializable{
 	}
 
 
-	
-	Message(){
+	private Message(){}
+
+	Message(Key destPublicKey) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+
+		Cipher c = Cipher.getInstance("RSA");
+		c.init(Cipher.ENCRYPT_MODE, destPublicKey);
+
 		Calendar cal = Calendar.getInstance();
-		_nonce = new SecureRandom();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ObjectOutputStream obj = new ObjectOutputStream(out);
+		obj.writeObject(new SecureRandom());
+		_nonce = c.doFinal(out.toByteArray());
 		_content = new HashMap<String, byte[]>();
-		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
+		obj.flush();
+		obj.writeObject(new Timestamp(Calendar.getInstance().getTimeInMillis()));
+
+		_timestamp = c.doFinal(out.toByteArray());
+
 	}
 	
-	Message(UUID uid){
-		this();
+	Message(UUID uid,Key destPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+		this(destPublicKey);
 		_userid = uid;
 	}
 	
@@ -59,8 +68,20 @@ class Message implements Serializable{
 		return _content.get(name);
 	}
 	
-	Timestamp getTimestamp(){
-		return _timestamp;
+	Timestamp getTimestamp(Key privateKey) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
+		Cipher c = null;
+		try {
+			c = Cipher.getInstance("RSA");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		}
+		c.init(Cipher.DECRYPT_MODE, privateKey);
+		byte[] result = c.doFinal(_timestamp);
+		ByteArrayInputStream b = new ByteArrayInputStream(result);
+		ObjectInputStream obj = new ObjectInputStream(b);
+		return (Timestamp) obj.readObject();
 	}
 
 	Map<String, byte[]> getAllContent(){
@@ -71,8 +92,20 @@ class Message implements Serializable{
 		_content = c;
 	}
 	
-	SecureRandom getNonce(){
-		return _nonce;
+	SecureRandom getNonce(Key privateKey) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
+		Cipher c = null;
+		try {
+			c = Cipher.getInstance("RSA");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		}
+		c.init(Cipher.DECRYPT_MODE, privateKey);
+		byte[] result = c.doFinal(_nonce);
+		ByteArrayInputStream b = new ByteArrayInputStream(result);
+		ObjectInputStream obj = new ObjectInputStream(b);
+		return (SecureRandom) obj.readObject();
 	}
 
 
