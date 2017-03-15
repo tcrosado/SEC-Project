@@ -38,7 +38,7 @@ public class AESMessageManager {
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
 		_destPublicKey = destinationPublicKey;
-		_msg = new Message(userid,_destPublicKey);
+		_msg = new Message(userid);
 	}
 
     //RECEIVE MESSAGE
@@ -159,8 +159,8 @@ public class AESMessageManager {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg.getAllContent());
-		obj.writeObject(_msg.getNonce(_destPublicKey));
-		obj.writeObject(_msg.getTimestamp(_destPublicKey));
+		obj.writeObject(_msg.getNonce());
+		obj.writeObject(_msg.getTimestamp());
 		obj.writeObject(_msg.getUserID());
 		return b.toByteArray();
 	}
