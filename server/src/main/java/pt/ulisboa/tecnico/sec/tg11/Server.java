@@ -119,9 +119,9 @@ public class Server implements PWMInterface {
             manager.setPublicKey(clientKey);
             manager.verifySignature();
 
-            byte[] domain = manager.getContent("domain");
-            byte[] username = manager.getContent("username");
-            byte[] password = manager.getContent("password");
+            byte[] domain = manager.getCypheredContent("domain");
+            byte[] username = manager.getCypheredContent("username");
+            byte[] password = manager.getCypheredContent("password");
 
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
@@ -135,7 +135,7 @@ public class Server implements PWMInterface {
                         }
                     }
                 }
-
+                System.out.println("This is the end");
                 List<Login> l = new ArrayList<Login>(login_list);
                 l.add(new Login(username, domain, password));
                 _userlogin.put(userID, l);
@@ -174,15 +174,13 @@ public class Server implements PWMInterface {
 
         	RSAMessageManager manager = new RSAMessageManager(msg);
         	UUID userID = manager.getUserID();
-            System.out.println("get: "+userID);
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
             manager.verifySignature();
 
-            byte[] domain = manager.getContent("domain");
-            byte[] username = manager.getContent("username");
+            byte[] domain = manager.getCypheredContent("domain");
+            byte[] username = manager.getCypheredContent("username");
             if(_userlogin.containsKey(userID)){
-
                 List<Login> login_list = _userlogin.get(userID);
                 if(!login_list.isEmpty()){
                 	

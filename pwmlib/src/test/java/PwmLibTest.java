@@ -111,10 +111,8 @@ public class PwmLibTest {
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        System.out.println("TESTPASS tem: "+ password.getBytes().length + " bytes");
-        System.out.println("Password recebida tem: "+ pw.length + " bytes");
-        Assert.assertArrayEquals(pw, password.getBytes());
 
+        Assert.assertArrayEquals(password.getBytes(),pw);
     }
 
     @Test
@@ -126,6 +124,6 @@ public class PwmLibTest {
         String password2 = "testPass2";
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        Assert.assertArrayEquals(pw, password2.getBytes());
+        Assert.assertArrayEquals(password2.getBytes(),pw);
     }
 }
