@@ -35,17 +35,18 @@ public class PwmLib {
     private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
     private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/session.jks";
     private char[] _ksPassword;
-    private KeyStore _ks = null;
+    private KeyStore _RSAks = null;
     private UUID _userID = null;
     private PWMInterface _server = null;
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
     private PrivateKey _symmetricKey;
     private Key _serverKey;
+    private KeyStore _AESks;
     
 
 
-    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
+    public void init(KeyStore AESks, KeyStore RSAks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -59,12 +60,12 @@ public class PwmLib {
     	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
     	
     	PublicKey _serverKey = certificate.getPublicKey();
-    	
-        this._ks = ks;
+    	this._AESks = AESks;
+        this._RSAks = RSAks;
         this._ksPassword = password;
-        this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
-        this._symmetricKey = (PrivateKey) ks.getKey(SYMMETRIC_KEY, this._ksPassword);
+        this._publicKey = RSAks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+        this._privateKey = (PrivateKey) RSAks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
+        this._symmetricKey = (PrivateKey) AESks.getKey(SYMMETRIC_KEY, this._ksPassword);
         //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");

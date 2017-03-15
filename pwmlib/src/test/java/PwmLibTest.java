@@ -23,27 +23,31 @@ import java.util.UUID;
  */
 public class PwmLibTest {
 
-    private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
-    private static KeyStore _keystore;
+    private static final String PATH_TO_RSAKEYSTORE = "./src/main/resources/keystore.jks";
+    private static final String PATH_TO_AESKEYSTORE = "./src/main/resources/session.jks";
+    private static KeyStore _RSAkeystore;
     private static PwmLib _pwmlib;
     private static String _keystorepw;
     private static UUID _userID;
+    private static KeyStore _AESkeystore;
 
     @BeforeClass
     public static void setUp() throws Exception {
 
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
 
-        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _RSAkeystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _AESkeystore = KeyStore.getInstance(KeyStore.getDefaultType());
         _keystorepw = "1234567";
 
         // get user password and file input stream
         char[] password = _keystorepw.toCharArray();
 
-        _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
+        _RSAkeystore.load(new FileInputStream(PATH_TO_RSAKEYSTORE), password);
+        _AESkeystore.load(new FileInputStream(PATH_TO_AESKEYSTORE), password);
 
         _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore,_keystorepw.toCharArray());
+        _pwmlib.init(_AESkeystore, _RSAkeystore,_keystorepw.toCharArray());
 
         _userID = _pwmlib.register_user();
         System.out.println("userid: "+_userID.toString());
