@@ -47,9 +47,10 @@ public class MessageManager {
 	}
 	
 	//CLIENT SEND MESSAGE
-	public MessageManager(UUID userid, Key srcPrivateKey, Key symmetricKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(UUID userid, Key srcPrivateKey, Key symmetricKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
 		_symmetricKey = symmetricKey;
+		_srcPublicKey = srcPublicKey;
 		_msg = new Message(userid);
 
 	}
@@ -84,13 +85,13 @@ public class MessageManager {
 		return b.toByteArray();
 	}
 
-	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
+	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, IOException {
 		
-		_msg.addContent(key, this.rsaCipherValue(value));
+		_msg.addContent(key, this.aesCipherValue(value));
 	}
 
-	public byte[] getContent(String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
-		return this.rsaCipherValue(_msg.getContent(key));
+	public byte[] getContent(String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException{
+		return this.aesCipherValue(_msg.getContent(key));
 	}
 	
 	public byte[] getCypheredContent(String key){

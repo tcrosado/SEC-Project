@@ -40,6 +40,7 @@ public class PwmLib {
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
     private PrivateKey _symmetricKey;
+    private Key _serverKey;
     
 
 
@@ -51,6 +52,12 @@ public class PwmLib {
         These keys maintained by the key store will be the ones used in the following session of commands
         issued at the client side, until a close() function is called.
         */
+    	
+    	FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
+    	CertificateFactory f = CertificateFactory.getInstance("X.509");
+    	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
+    	
+    	PublicKey _serverKey = certificate.getPublicKey();
     	
         this._ks = ks;
         this._ksPassword = password;
@@ -75,7 +82,7 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey);
+        MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey, _serverKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
@@ -89,7 +96,7 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey);
+    	MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey, _serverKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
