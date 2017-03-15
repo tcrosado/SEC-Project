@@ -112,7 +112,7 @@ public class Server implements PWMInterface {
             RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
             UUID userID = manager.getUserID();
             Key clientKey = _userKeys.get(userID);
-            manager.verifySignature(clientKey);
+            manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
@@ -170,7 +170,7 @@ public class Server implements PWMInterface {
         	RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
         	UUID userID = manager.getUserID();
             Key clientKey = _userKeys.get(userID);
-            manager.verifySignature(clientKey);
+            manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
