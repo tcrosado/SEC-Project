@@ -44,7 +44,7 @@ public class Server implements PWMInterface {
     private final String KEY_NAME = "privatekey";
     private static KeyStore _keystore;
     private static String _keystorepw;
-    private Map<UUID, Key> _sessionKeys = new HashMap<UUID,Key>();
+    //private Map<UUID, Key> _sessionKeys = new HashMap<UUID,Key>();
     private PrivateKey _privateKey;
 
 	private Map<UUID, Key> _userKeys = new HashMap<UUID,Key>();
@@ -85,14 +85,14 @@ public class Server implements PWMInterface {
 
     }
     
-    private void setSessionKey(UUID userID, Key sessionKey){
+   /* private void setSessionKey(UUID userID, Key sessionKey){
         if (_sessionKeys.containsKey(userID)){
             _sessionKeys.replace(userID, sessionKey);
         }
         else {
             _sessionKeys.put(userID, sessionKey);
         }
-    }
+    }*/
 
     public static void main(String [] args) throws UnrecoverableKeyException{
         Server server;
@@ -114,11 +114,11 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException{
+    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            Key sessionKey = _sessionKeys.get(userID);
-            AESMessageManager manager = new AESMessageManager(msg, sessionKey);
+            RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+            UUID userID = manager.getUserID();
             Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
@@ -166,19 +166,17 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
         }
     }
 
 
-    public byte[] get(UUID userID, byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
     	/*UUID userID, byte[] domain, byte[] username*/
 
         try {
 
-            Key sessionKey = _sessionKeys.get(userID);
-            AESMessageManager manager = new AESMessageManager(msg, sessionKey);
+        	RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+        	UUID userID = manager.getUserID();
             Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
@@ -218,8 +216,6 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
         }
         return new byte[0];
     }
@@ -245,27 +241,19 @@ public class Server implements PWMInterface {
     }
 	
 	
-	public void receiveSessionKey(byte[] message) throws InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException{
+	/*public void receiveSessionKey(byte[] message) throws InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException{
 		
 		RSAMessageManager manager = new RSAMessageManager(message, _privateKey);
 		
 		byte[] byteKey = manager.getContent("sessionKey");
 		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, "AES");
 		
-		byte[] byteUserID = manager.getContent("userID");
-		UUID userID = this.asUuid(byteUserID);
+		UUID userID = manager.getUserID();
 		
 		if(_userKeys.containsKey(userID))
 			setSessionKey(userID, key);
 		else
 			throw new UserDoesNotExistException(userID);
-	}
-	
-	public UUID asUuid(byte[] bytes) {
-	    ByteBuffer bb = ByteBuffer.wrap(bytes);
-	    long firstLong = bb.getLong();
-	    long secondLong = bb.getLong();
-	    return new UUID(firstLong, secondLong);
-	}
+	}*/
 
 }

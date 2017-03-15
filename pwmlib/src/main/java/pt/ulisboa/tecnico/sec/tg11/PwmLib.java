@@ -38,7 +38,7 @@ public class PwmLib {
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
     public PublicKey _serverKey;
-    private Key _sessionKey;
+   // private Key _sessionKey;
     
 
 
@@ -71,7 +71,7 @@ public class PwmLib {
         securely store the passwords.*/
      
         this._userID = _server.register(_publicKey);
-        this.generateAndSendSessionKey();
+        //this.generateAndSendSessionKey();
         return _userID;
     }
 
@@ -80,12 +80,12 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        AESMessageManager content = new AESMessageManager(_userID, _sessionKey, _privateKey, _serverKey, _publicKey);
+        RSAMessageManager content = new RSAMessageManager(_userID, _privateKey, _serverKey, _publicKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
 
-        _server.put(_userID, content.generateMessage());
+        _server.put(content.generateMessage());
     }
 
 
@@ -94,15 +94,15 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	AESMessageManager content = new AESMessageManager(_userID, _sessionKey, _privateKey, _serverKey, _publicKey);
+    	RSAMessageManager content = new RSAMessageManager(_userID, _privateKey, _serverKey, _publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
-        return _server.get(_userID, content.generateMessage());
+        return _server.get(content.generateMessage());
 
     }
     
-    private void setSessionKey(Key k){
+    /*private void setSessionKey(Key k){
     	_sessionKey = k;
     }
     
@@ -126,7 +126,7 @@ public class PwmLib {
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();
-    }
+    }*/
 
     public void close(){
         /*  concludes the current session of commands with the client library. */
