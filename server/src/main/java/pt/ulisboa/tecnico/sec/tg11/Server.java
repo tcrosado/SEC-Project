@@ -85,14 +85,6 @@ public class Server implements PWMInterface {
 
     }
     
-   /* private void setSessionKey(UUID userID, Key sessionKey){
-        if (_sessionKeys.containsKey(userID)){
-            _sessionKeys.replace(userID, sessionKey);
-        }
-        else {
-            _sessionKeys.put(userID, sessionKey);
-        }
-    }*/
 
     public static void main(String [] args) throws UnrecoverableKeyException{
         Server server;
@@ -239,21 +231,5 @@ public class Server implements PWMInterface {
 	    reg.unbind(SERVER_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
-	
-	
-	/*public void receiveSessionKey(byte[] message) throws InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException{
-		
-		RSAMessageManager manager = new RSAMessageManager(message, _privateKey);
-		
-		byte[] byteKey = manager.getContent("sessionKey");
-		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, "AES");
-		
-		UUID userID = manager.getUserID();
-		
-		if(_userKeys.containsKey(userID))
-			setSessionKey(userID, key);
-		else
-			throw new UserDoesNotExistException(userID);
-	}*/
 
 }

@@ -46,10 +46,9 @@ public class RSAMessageManager {
 	}
 	
 	//CLIENT SEND MESSAGE
-	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey, Key destPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
-		_destPublicKey = destPublicKey;
 		_msg = new Message(userid,_destPublicKey);
 	}
 
@@ -85,7 +84,7 @@ public class RSAMessageManager {
 
 	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
 		
-		_msg.addContent(key, value);
+		_msg.addContent(key, this.rsaCipherValue(value, _srcPublicKey));
 	}
 
 	public byte[] getContent(String key){
