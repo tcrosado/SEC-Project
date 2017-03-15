@@ -89,7 +89,11 @@ public class RSAMessageManager {
 		_msg.addContent(key, this.rsaCipherValue(value, _symmetricKey));
 	}
 
-	public byte[] getContent(String key){
+	public byte[] getContent(String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
+		return this.rsaCipherValue(_msg.getContent(key), _symmetricKey);
+	}
+	
+	public byte[] getCypheredContent(String key){
 		return _msg.getContent(key);
 	}
 
