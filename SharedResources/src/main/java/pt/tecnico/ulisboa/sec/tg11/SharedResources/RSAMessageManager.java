@@ -116,10 +116,10 @@ public class RSAMessageManager {
 	}
 
 	
-	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
+	public void verifySignature() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initVerify((PublicKey) key);
+		sign.initVerify((PublicKey) _srcPublicKey);
 		sign.update(serializeContent());
 
 		if(sign.verify(_msg.getSignature()))

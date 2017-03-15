@@ -115,7 +115,7 @@ public class Server implements PWMInterface {
 
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
-            manager.verifySignature(clientKey);
+            manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
@@ -174,7 +174,8 @@ public class Server implements PWMInterface {
         	UUID userID = manager.getUserID();
             System.out.println("get: "+userID);
             Key clientKey = _userKeys.get(userID);
-            manager.verifySignature(clientKey);
+            manager.setPublicKey(clientKey);
+            manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
