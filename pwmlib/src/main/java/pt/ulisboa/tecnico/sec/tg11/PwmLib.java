@@ -22,6 +22,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -32,7 +33,7 @@ public class PwmLib {
     private final String SYMMETRIC_KEY = "mykey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
-    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/symmetricKeystore.jks";
+    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/symmetricKey.jks";
     private char[] _ksPassword;
     private KeyStore _ks = null;
     private UUID _userID = null;
@@ -64,6 +65,7 @@ public class PwmLib {
         this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
         this._symmetricKey = (PrivateKey) ks.getKey(SYMMETRIC_KEY, this._ksPassword);
+        //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");
         

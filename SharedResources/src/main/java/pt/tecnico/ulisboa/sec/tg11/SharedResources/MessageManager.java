@@ -140,7 +140,7 @@ public class MessageManager {
 		_srcPublicKey = pub;
 	}
 	
-private byte[] aesCipherValue(byte[] value) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException {
+	private byte[] aesCipherValue(byte[] value) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException {
 		
 		Cipher aesCipherForEncryption = Cipher.getInstance("AES/CBC/PKCS5PADDING");
 		
