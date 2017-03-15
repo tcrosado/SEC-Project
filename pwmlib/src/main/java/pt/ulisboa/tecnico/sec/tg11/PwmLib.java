@@ -71,7 +71,7 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        RSAMessageManager content = new RSAMessageManager(_userID, _privateKey, _publicKey);
+        RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_publicKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
@@ -85,7 +85,7 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	RSAMessageManager content = new RSAMessageManager(_userID, _privateKey, _publicKey);
+    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	

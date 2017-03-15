@@ -26,30 +26,31 @@ public class RSAMessageManager {
 	
 	private Message _msg;
 	private Key _srcPrivateKey;
-	private Key _destPublicKey;
 	private Key _srcPublicKey;
-	
-	
+
+
 	//RECEIVES MESSAGE
-	public RSAMessageManager(byte[] message,Key srcPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
-		_srcPrivateKey = srcPrivateKey;
+	public RSAMessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
 	}
 	
 	//SERVER SEND MESSAGE
-	public RSAMessageManager(Key srcPrivateKey, Key destPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
-		_destPublicKey = destPublicKey;
-		_msg = new Message(_destPublicKey);
+		_srcPublicKey = srcPublicKey;
+		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
 	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
-		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
-		_msg = new Message(userid,srcPublicKey);
+
+		_srcPublicKey = srcPublicKey;
+		_msg = new Message(userid);
+
 	}
 
 	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
@@ -120,12 +121,16 @@ public class RSAMessageManager {
 	public void verifySignature() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initVerify((PublicKey) _destPublicKey);
+		sign.initVerify((PublicKey) _srcPublicKey);
 		sign.update(serializeContent());
 
 		if(sign.verify(_msg.getSignature()))
 			return;
 		else
 			throw new InvalidSignatureException(_msg.getSignature());
+	}
+
+	public void setPublicKey(Key pub){
+		_srcPublicKey = pub;
 	}
 }

@@ -46,7 +46,7 @@ public class PwmLibTest {
         _pwmlib.init(_keystore,_keystorepw.toCharArray());
 
         _userID = _pwmlib.register_user();
-
+        System.out.println("userid: "+_userID.toString());
     }
 
     @AfterClass
@@ -100,6 +100,8 @@ public class PwmLibTest {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
+
+        System.out.println("Save userid: "+_userID.toString());
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 

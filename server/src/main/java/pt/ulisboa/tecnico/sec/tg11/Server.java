@@ -110,9 +110,12 @@ public class Server implements PWMInterface {
     public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+            RSAMessageManager manager = new RSAMessageManager(msg);
             UUID userID = manager.getUserID();
+            System.out.println("put: "+userID);
+
             Key clientKey = _userKeys.get(userID);
+            manager.setPublicKey(clientKey);
             manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
@@ -168,9 +171,11 @@ public class Server implements PWMInterface {
 
         try {
 
-        	RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+        	RSAMessageManager manager = new RSAMessageManager(msg);
         	UUID userID = manager.getUserID();
+            System.out.println("get: "+userID);
             Key clientKey = _userKeys.get(userID);
+            manager.setPublicKey(clientKey);
             manager.verifySignature();
 
             byte[] domain = manager.getContent("domain");
