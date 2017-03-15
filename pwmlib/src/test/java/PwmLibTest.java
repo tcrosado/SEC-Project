@@ -37,7 +37,7 @@ public class PwmLibTest {
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
 
         _RSAkeystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _AESkeystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _AESkeystore = KeyStore.getInstance("JCEKS");
         _keystorepw = "1234567";
 
         // get user password and file input stream

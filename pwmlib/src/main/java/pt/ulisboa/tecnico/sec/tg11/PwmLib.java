@@ -9,6 +9,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -40,7 +41,7 @@ public class PwmLib {
     private PWMInterface _server = null;
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
-    private PrivateKey _symmetricKey;
+    private Key _symmetricKey;
     private Key _serverKey;
     private KeyStore _AESks;
     
@@ -65,7 +66,7 @@ public class PwmLib {
         this._ksPassword = password;
         this._publicKey = RSAks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         this._privateKey = (PrivateKey) RSAks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
-        this._symmetricKey = (PrivateKey) AESks.getKey(SYMMETRIC_KEY, this._ksPassword);
+        this._symmetricKey = (SecretKeySpec) AESks.getKey(SYMMETRIC_KEY, this._ksPassword);
         //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");
