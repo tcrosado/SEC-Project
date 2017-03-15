@@ -74,14 +74,14 @@ public class RSAMessageManager {
 	    return v;
 	}
 
-	public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException {
+	public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, ClassNotFoundException {
 		generateSignature();
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
 		obj.flush();
 		obj.close();
-		return this.rsaCipherValue(b.toByteArray(),_destPublicKey);
+		return b.toByteArray();
 	}
 
 	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
@@ -97,12 +97,12 @@ public class RSAMessageManager {
 		return _msg.getUserID();
 	}
 
-	private byte[] serializeContent() throws IOException {
+	private byte[] serializeContent() throws IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException, InvalidKeyException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg.getAllContent());
-		obj.writeObject(_msg.getNonce());
-		obj.writeObject(_msg.getTimestamp());
+		obj.writeObject(_msg.getNonce(_destPublicKey));
+		obj.writeObject(_msg.getTimestamp(_destPublicKey));
 		obj.writeObject(_msg.getUserID());
 		obj.flush();
 		obj.close();
@@ -110,7 +110,7 @@ public class RSAMessageManager {
 	}
 
 	
-	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
+	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
 		sign.initSign((PrivateKey) _srcPrivateKey);
@@ -119,7 +119,7 @@ public class RSAMessageManager {
 	}
 
 	
-	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException {
+	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
 		sign.initVerify((PublicKey) key);

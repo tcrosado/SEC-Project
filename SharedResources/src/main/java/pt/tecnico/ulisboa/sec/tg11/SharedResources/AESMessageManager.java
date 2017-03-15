@@ -32,13 +32,13 @@ public class AESMessageManager {
 	private static final int AES_KEYLENGTH = 128;
 	
 	//CLIENT SEND
-	public AESMessageManager(UUID userid, Key sessionKey, Key srcPrivateKey, Key destinationPublicKey, Key srcPublicKey){
+	public AESMessageManager(UUID userid, Key sessionKey, Key srcPrivateKey, Key destinationPublicKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_userID = userid;
         _sessionKey = sessionKey;
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
 		_destPublicKey = destinationPublicKey;
-		_msg = new Message(userid);
+		_msg = new Message(userid,_destPublicKey);
 	}
 
     //RECEIVE MESSAGE
@@ -51,7 +51,7 @@ public class AESMessageManager {
     }
 
 
-    public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException {
+    public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException {
 		generateSignature();
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
@@ -134,7 +134,7 @@ public class AESMessageManager {
 	
 
 	
-	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
+	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
 		sign.initSign((PrivateKey) _srcPrivateKey);
@@ -143,7 +143,7 @@ public class AESMessageManager {
 	}
 
 	
-	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException {
+	public void verifySignature(Key key) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
 		
 		Signature sign = Signature.getInstance("SHA256withRSA");
 		sign.initVerify((PublicKey) key);
@@ -155,12 +155,12 @@ public class AESMessageManager {
 			throw new InvalidSignatureException(_msg.getSignature());
 	}
 	
-	private byte[] serializeContent() throws IOException {
+	private byte[] serializeContent() throws IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException, InvalidKeyException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg.getAllContent());
-		obj.writeObject(_msg.getNonce());
-		obj.writeObject(_msg.getTimestamp());
+		obj.writeObject(_msg.getNonce(_destPublicKey));
+		obj.writeObject(_msg.getTimestamp(_destPublicKey));
 		obj.writeObject(_msg.getUserID());
 		return b.toByteArray();
 	}
