@@ -114,5 +114,12 @@ class Message implements Serializable{
 		return (BigInteger) obj.readObject();
 	}
 
+	byte[] getNonce(){
+		return _nonce;
+	}
+
+	byte[] getTimestamp(){
+		return _timestamp;
+	}
 
 }

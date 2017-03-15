@@ -101,8 +101,8 @@ public class RSAMessageManager {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg.getAllContent());
-		obj.writeObject(_msg.getNonce(_destPublicKey));
-		obj.writeObject(_msg.getTimestamp(_destPublicKey));
+		obj.writeObject(_msg.getNonce());
+		obj.writeObject(_msg.getTimestamp());
 		obj.writeObject(_msg.getUserID());
 		obj.flush();
 		obj.close();

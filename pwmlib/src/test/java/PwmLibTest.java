@@ -10,10 +10,12 @@ import javax.crypto.NoSuchPaddingException;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.UUID;
 
 /**
@@ -52,9 +54,9 @@ public class PwmLibTest {
         _pwmlib.close();
     }
 
-    /*
-    @Test
-    public void testeverything() throws RemoteException, NotBoundException, UnrecoverableKeyException, UserAlreadyExistsException, NoSuchAlgorithmException, KeyStoreException, UserDoesNotExistException, PasswordDoesNotExistException {
+
+  /*  @Test
+    public void testeverything() throws RemoteException, NotBoundException, UnrecoverableKeyException, UserAlreadyExistsException, NoSuchAlgorithmException, KeyStoreException, UserDoesNotExistException, PasswordDoesNotExistException, CertificateException, FileNotFoundException {
 
         _pwmlib = new PwmLib();
         _pwmlib.init(_keystore, _keystorepw.toCharArray());
@@ -80,21 +82,21 @@ public class PwmLibTest {
         System.out.println("Testeverything -> PasswordEnviada: " + password2);
         System.out.println("Testeverything -> PasswordObtida: " + new String(pw));
         Assert.assertEquals(password2, new String(pw));
-    }
+    }*/
 
-
+/*
     @Test
-    public void register_user() throws RegisterUser418, UserAlreadyExistsException, pt.tecnico.ulisboa.sec.tg11.PWInterface.exceptions.UserAlreadyExistsException {
+    public void register_user() throws  UserAlreadyExistsException, IOException, UserDoesNotExistException, NoSuchAlgorithmException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, BadPaddingException, InvalidSignatureException, KeyStoreException, IllegalBlockSizeException, ClassNotFoundException {
 
-        //_userID = _pwmlib.register_user();
+        _userID = _pwmlib.register_user();
         System.out.println("UserID: " + _userID);
         Assert.assertNotNull(_userID);
         System.out.println("Teste1 ");
     }
-   */
 
-    /*@Test
-    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException {
+*/
+    @Test
+    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -102,14 +104,14 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException {
+    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
         Assert.assertArrayEquals(pw, password.getBytes());
 
-    }*/
+    }
 
     @Test
     public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
