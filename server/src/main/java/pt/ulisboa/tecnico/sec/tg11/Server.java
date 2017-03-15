@@ -85,14 +85,6 @@ public class Server implements PWMInterface {
 
     }
     
-   /* private void setSessionKey(UUID userID, Key sessionKey){
-        if (_sessionKeys.containsKey(userID)){
-            _sessionKeys.replace(userID, sessionKey);
-        }
-        else {
-            _sessionKeys.put(userID, sessionKey);
-        }
-    }*/
 
     public static void main(String [] args) throws UnrecoverableKeyException{
         Server server;
@@ -117,9 +109,12 @@ public class Server implements PWMInterface {
     public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+            RSAMessageManager manager = new RSAMessageManager(msg);
             UUID userID = manager.getUserID();
+            System.out.println("put: "+userID);
+
             Key clientKey = _userKeys.get(userID);
+            manager.setPublicKey(clientKey);
             manager.verifySignature(clientKey);
 
             byte[] domain = manager.getContent("domain");
@@ -175,8 +170,9 @@ public class Server implements PWMInterface {
 
         try {
 
-        	RSAMessageManager manager = new RSAMessageManager(msg, _privateKey);
+        	RSAMessageManager manager = new RSAMessageManager(msg);
         	UUID userID = manager.getUserID();
+            System.out.println("get: "+userID);
             Key clientKey = _userKeys.get(userID);
             manager.verifySignature(clientKey);
 
@@ -239,21 +235,5 @@ public class Server implements PWMInterface {
 	    reg.unbind(SERVER_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
-	
-	
-	/*public void receiveSessionKey(byte[] message) throws InvalidKeyException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, IOException, InvalidSignatureException, UserDoesNotExistException{
-		
-		RSAMessageManager manager = new RSAMessageManager(message, _privateKey);
-		
-		byte[] byteKey = manager.getContent("sessionKey");
-		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, "AES");
-		
-		UUID userID = manager.getUserID();
-		
-		if(_userKeys.containsKey(userID))
-			setSessionKey(userID, key);
-		else
-			throw new UserDoesNotExistException(userID);
-	}*/
 
 }

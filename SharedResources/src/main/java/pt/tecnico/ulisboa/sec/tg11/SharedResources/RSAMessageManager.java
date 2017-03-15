@@ -26,25 +26,28 @@ public class RSAMessageManager {
 	
 	private Message _msg;
 	private Key _srcPrivateKey;
+	private Key _srcPublicKey;
 
-	
+
 	//RECEIVES MESSAGE
-	public RSAMessageManager(byte[] message,Key srcPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
-		_srcPrivateKey = srcPrivateKey;
+	public RSAMessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
 	}
 	
 	//SERVER SEND MESSAGE
-	public RSAMessageManager(Key srcPrivateKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
+		_srcPublicKey = srcPublicKey;
 		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
-	public RSAMessageManager(UUID userid, Key srcPrivateKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
+		_srcPublicKey = srcPublicKey;
 		_msg = new Message(userid);
 	}
 
@@ -80,7 +83,7 @@ public class RSAMessageManager {
 
 	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
 		
-		_msg.addContent(key, value);
+		_msg.addContent(key, this.rsaCipherValue(value, _srcPublicKey));
 	}
 
 	public byte[] getContent(String key){
@@ -123,5 +126,9 @@ public class RSAMessageManager {
 			return;
 		else
 			throw new InvalidSignatureException(_msg.getSignature());
+	}
+
+	public void setPublicKey(Key pub){
+		_srcPublicKey = pub;
 	}
 }

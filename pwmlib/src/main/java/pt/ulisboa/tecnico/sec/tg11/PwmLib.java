@@ -37,8 +37,6 @@ public class PwmLib {
     private PWMInterface _server = null;
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
-    public PublicKey _serverKey;
-   // private Key _sessionKey;
     
 
 
@@ -50,12 +48,6 @@ public class PwmLib {
         These keys maintained by the key store will be the ones used in the following session of commands
         issued at the client side, until a close() function is called.
         */
-    	
-    	FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
-    	CertificateFactory f = CertificateFactory.getInstance("X.509");
-    	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
-    	
-    	_serverKey = certificate.getPublicKey();
     	
         this._ks = ks;
         this._ksPassword = password;
@@ -71,7 +63,6 @@ public class PwmLib {
         securely store the passwords.*/
      
         this._userID = _server.register(_publicKey);
-        //this.generateAndSendSessionKey();
         return _userID;
     }
 
@@ -80,7 +71,7 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        RSAMessageManager content = new RSAMessageManager(_userID, _privateKey);
+        RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_publicKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
@@ -94,39 +85,13 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	RSAMessageManager content = new RSAMessageManager(_userID, _privateKey);
+    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
         return _server.get(content.generateMessage());
 
     }
-    
-    /*private void setSessionKey(Key k){
-    	_sessionKey = k;
-    }
-    
-    private void generateAndSendSessionKey() throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException{
-    	
-    	KeyGenerator kgen = KeyGenerator.getInstance("AES");
-    	kgen.init(128);
-    	
-    	_sessionKey = kgen.generateKey();
-    	
-    	RSAMessageManager msg = new RSAMessageManager(_userID, _privateKey, _publicKey, _serverKey);
-    	msg.putContent("sessionKey", _sessionKey.getEncoded());
-    	msg.putContent("_userID", getIdAsByte(msg.getUserID()));
-    	
-    	_server.receiveSessionKey(msg.generateMessage());
-    }
-    
-    public byte[] getIdAsByte(UUID uuid)
-    {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
-    }*/
 
     public void close(){
         /*  concludes the current session of commands with the client library. */
