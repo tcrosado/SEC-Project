@@ -22,16 +22,17 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 
-public class RSAMessageManager {
+public class MessageManager {
 	
 	private Message _msg;
 	private Key _srcPrivateKey;
 	private Key _srcPublicKey;
 	private Key _symmetricKey;
+	private static final int AES_KEYLENGTH = 128;
 
 
 	//RECEIVES MESSAGE
-	public RSAMessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+	public MessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
 
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
 		ObjectInputStream obj = new ObjectInputStream(b);
@@ -39,35 +40,34 @@ public class RSAMessageManager {
 	}
 	
 	//SERVER SEND MESSAGE
-	public RSAMessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
 		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
-	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key symmetricKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(UUID userid, Key srcPrivateKey, Key symmetricKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
-
 		_symmetricKey = symmetricKey;
 		_msg = new Message(userid);
 
 	}
 
-	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
+	private byte[] rsaCipherValue(byte[] value) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
 			
 		Cipher c = Cipher.getInstance("RSA");
-	    c.init(Cipher.ENCRYPT_MODE, key);
+	    c.init(Cipher.ENCRYPT_MODE, _symmetricKey);
 	    
 	    byte[] v  = c.doFinal(value);
 	     
 	    return v;
 	}
 	
-	private byte[] rsaDecipherValue(byte[] value, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+	private byte[] rsaDecipherValue(byte[] value) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 		
 		Cipher d = Cipher.getInstance("RSA");
-	    d.init(Cipher.DECRYPT_MODE, key);
+	    d.init(Cipher.DECRYPT_MODE, _symmetricKey);
 	    
 	    byte[] v = d.doFinal(value);
 	    
@@ -86,11 +86,11 @@ public class RSAMessageManager {
 
 	public void putContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException {
 		
-		_msg.addContent(key, this.rsaCipherValue(value, _symmetricKey));
+		_msg.addContent(key, this.rsaCipherValue(value));
 	}
 
 	public byte[] getContent(String key) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
-		return this.rsaCipherValue(_msg.getContent(key), _symmetricKey);
+		return this.rsaCipherValue(_msg.getContent(key));
 	}
 	
 	public byte[] getCypheredContent(String key){
@@ -137,5 +137,52 @@ public class RSAMessageManager {
 
 	public void setPublicKey(Key pub){
 		_srcPublicKey = pub;
+	}
+	
+private byte[] aesCipherValue(byte[] value) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException {
+		
+		Cipher aesCipherForEncryption = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+		
+		byte[] iv = generateIV();
+		
+		aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, _symmetricKey, new IvParameterSpec(iv));
+			
+		byte[] byteCipherText = aesCipherForEncryption.doFinal(value);
+		
+		ByteArrayOutputStream result = new ByteArrayOutputStream();
+		
+		result.write(iv);
+		result.write(byteCipherText);
+		
+		return result.toByteArray();
+	}
+	
+	private byte[] aesDecipherValue(byte[] value) throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException{
+		
+		Cipher aesCipherForDecryption = Cipher.getInstance("AES/CBC/PKCS5PADDING"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!				
+		
+		ByteArrayInputStream b = new ByteArrayInputStream(value);
+		
+		byte[] iv = new byte[AES_KEYLENGTH/8];
+		
+		b.read(iv, 0, AES_KEYLENGTH/8);
+		
+		byte[] message = new byte[value.length-(AES_KEYLENGTH/8)];
+		
+		b.read(message, AES_KEYLENGTH/8, value.length-(AES_KEYLENGTH/8));
+		
+		aesCipherForDecryption.init(Cipher.DECRYPT_MODE, _symmetricKey,new IvParameterSpec(iv));
+		byte[] byteDecryptedText = aesCipherForDecryption.doFinal(message);
+		
+		return byteDecryptedText;
+	}
+	
+	public byte[] generateIV(){
+
+		byte[] iv = new byte[AES_KEYLENGTH / 8];	// Save the IV bytes or send it in plaintext with the encrypted data so you can decrypt the data later
+		SecureRandom prng = new SecureRandom();
+		prng.nextBytes(iv);
+		
+		return iv;
 	}
 }

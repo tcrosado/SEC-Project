@@ -9,7 +9,7 @@ import java.rmi.NotBoundException;
 
 
 import pt.ulisboa.tecnico.sec.tg11.Login;
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
@@ -111,7 +111,7 @@ public class Server implements PWMInterface {
     public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            RSAMessageManager manager = new RSAMessageManager(msg);
+            MessageManager manager = new MessageManager(msg);
             UUID userID = manager.getUserID();
             System.out.println("put: "+userID);
 
@@ -172,7 +172,7 @@ public class Server implements PWMInterface {
 
         try {
 
-        	RSAMessageManager manager = new RSAMessageManager(msg);
+        	MessageManager manager = new MessageManager(msg);
         	UUID userID = manager.getUserID();
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);

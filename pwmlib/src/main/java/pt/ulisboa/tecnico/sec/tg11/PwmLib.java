@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
 
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 
@@ -75,7 +75,7 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_symmetricKey);
+        MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey);
         content.putContent("domain",domain);
         content.putContent("username",username);
         content.putContent("password",password);
@@ -89,7 +89,7 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey,_symmetricKey);
+    	MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	
