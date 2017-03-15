@@ -29,14 +29,17 @@ import java.util.UUID;
  */
 public class PwmLib {
     private final String CLIENT_PUBLIC_KEY = "privatekey";
+    private final String SYMMETRIC_KEY = "mykey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
+    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/symmetricKeystore.jks";
     private char[] _ksPassword;
     private KeyStore _ks = null;
     private UUID _userID = null;
     private PWMInterface _server = null;
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
+    private PrivateKey _symmetricKey;
     
 
 
@@ -53,6 +56,7 @@ public class PwmLib {
         this._ksPassword = password;
         this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
+        this._symmetricKey = (PrivateKey) ks.getKey(SYMMETRIC_KEY, this._ksPassword);
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");
         
