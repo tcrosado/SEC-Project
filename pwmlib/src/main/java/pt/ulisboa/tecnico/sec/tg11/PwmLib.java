@@ -33,7 +33,7 @@ public class PwmLib {
     private final String SYMMETRIC_KEY = "mykey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
-    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/symmetricKey.jks";
+    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/session.jks";
     private char[] _ksPassword;
     private KeyStore _ks = null;
     private UUID _userID = null;
