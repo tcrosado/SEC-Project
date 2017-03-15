@@ -89,12 +89,12 @@ public class PwmLib {
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	RSAMessageManager content = new RSAMessageManager(userID, _privateKey, _serverKey, _publicKey);
+    	AESMessageManager content = new AESMessageManager(_userID, _sessionKey, _privateKey, _serverKey, _publicKey);
     	content.putContent("domain", domain);
     	content.putContent("username", username);
     	

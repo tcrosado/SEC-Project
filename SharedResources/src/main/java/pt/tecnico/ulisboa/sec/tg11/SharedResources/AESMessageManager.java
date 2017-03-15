@@ -31,7 +31,7 @@ public class AESMessageManager {
     private UUID _userID;
 	private static final int AES_KEYLENGTH = 128;
 	
-	//CLIENT SEND FIRST MESSAGE
+	//CLIENT SEND
 	public AESMessageManager(UUID userid, Key sessionKey, Key srcPrivateKey, Key destinationPublicKey, Key srcPublicKey){
 		_userID = userid;
         _sessionKey = sessionKey;
@@ -41,7 +41,7 @@ public class AESMessageManager {
 		_msg = new Message(userid);
 	}
 
-    //RECEIVES MESSAGE
+    //RECEIVE MESSAGE
     public AESMessageManager(byte[] message, Key sessionKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException, InvalidAlgorithmParameterException {
         _sessionKey = sessionKey;
         byte[] msg = aesDecipherValue(message);

@@ -79,8 +79,8 @@ public class RSAMessageManager {
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
-		
-		
+		obj.flush();
+		obj.close();
 		return this.rsaCipherValue(b.toByteArray(),_destPublicKey);
 	}
 
@@ -104,6 +104,8 @@ public class RSAMessageManager {
 		obj.writeObject(_msg.getNonce());
 		obj.writeObject(_msg.getTimestamp());
 		obj.writeObject(_msg.getUserID());
+		obj.flush();
+		obj.close();
 		return b.toByteArray();
 	}
 
