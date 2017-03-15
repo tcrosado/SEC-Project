@@ -86,7 +86,11 @@ public class RSAMessageManager {
 		_msg.addContent(key, this.rsaCipherValue(value, _srcPublicKey));
 	}
 
-	public byte[] getContent(String key){
+	public byte[] getContent(String key) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+		return this.rsaDecipherValue(_msg.getContent(key),_srcPrivateKey);
+	}
+
+	public byte[] getCypheredContent(String key){
 		return _msg.getContent(key);
 	}
 
