@@ -2,6 +2,8 @@ package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
 
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.*;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -40,11 +42,14 @@ class Message implements Serializable{
 		Calendar cal = Calendar.getInstance();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(out);
-		obj.writeObject(new SecureRandom());
+		obj.writeObject(new BigInteger(64, new SecureRandom()));
+		System.out.print("Size: "+ out.toByteArray().length);
 		_nonce = c.doFinal(out.toByteArray());
 		_content = new HashMap<String, byte[]>();
-		obj.flush();
-		obj.writeObject(new Timestamp(Calendar.getInstance().getTimeInMillis()));
+
+		out.flush();
+		DataOutputStream d = new DataOutputStream(out);
+		d.writeLong(Calendar.getInstance().getTimeInMillis());
 
 		_timestamp = c.doFinal(out.toByteArray());
 
@@ -80,8 +85,8 @@ class Message implements Serializable{
 		c.init(Cipher.DECRYPT_MODE, privateKey);
 		byte[] result = c.doFinal(_timestamp);
 		ByteArrayInputStream b = new ByteArrayInputStream(result);
-		ObjectInputStream obj = new ObjectInputStream(b);
-		return (Timestamp) obj.readObject();
+		DataInputStream d = new DataInputStream(b);
+		return new Timestamp(d.readLong());
 	}
 
 	Map<String, byte[]> getAllContent(){
@@ -92,7 +97,7 @@ class Message implements Serializable{
 		_content = c;
 	}
 	
-	SecureRandom getNonce(Key privateKey) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
+	BigInteger getNonce(Key privateKey) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
 		Cipher c = null;
 		try {
 			c = Cipher.getInstance("RSA");
@@ -101,11 +106,12 @@ class Message implements Serializable{
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
+
 		c.init(Cipher.DECRYPT_MODE, privateKey);
 		byte[] result = c.doFinal(_nonce);
 		ByteArrayInputStream b = new ByteArrayInputStream(result);
 		ObjectInputStream obj = new ObjectInputStream(b);
-		return (SecureRandom) obj.readObject();
+		return (BigInteger) obj.readObject();
 	}
 
 

@@ -112,7 +112,7 @@ public class PwmLibTest {
     }*/
 
     @Test
-    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException {
+    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
