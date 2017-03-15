@@ -39,17 +39,17 @@ public class RSAMessageManager {
 	}
 	
 	//SERVER SEND MESSAGE
-	public RSAMessageManager(Key srcPrivateKey,Key symmetricKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
-		_symmetricKey = symmetricKey;
+		_srcPublicKey = srcPublicKey;
 		_msg = new Message();
 	}
 	
 	//CLIENT SEND MESSAGE
-	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key symmetricKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
 
-		_srcPublicKey = srcPublicKey;
+		_symmetricKey = symmetricKey;
 		_msg = new Message(userid);
 
 	}
@@ -89,11 +89,7 @@ public class RSAMessageManager {
 		_msg.addContent(key, this.rsaCipherValue(value, _symmetricKey));
 	}
 
-	public byte[] getContent(String key) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
-		return this.rsaDecipherValue(_msg.getContent(key),_srcPrivateKey);
-	}
-
-	public byte[] getCypheredContent(String key){
+	public byte[] getContent(String key){
 		return _msg.getContent(key);
 	}
 
