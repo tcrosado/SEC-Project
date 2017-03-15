@@ -33,8 +33,7 @@ public class RSAMessageManager {
 	//RECEIVES MESSAGE
 	public RSAMessageManager(byte[] message,Key srcPrivateKey) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
 		_srcPrivateKey = srcPrivateKey;
-		byte[] msg = rsaDecipherValue(message,_srcPrivateKey);
-		ByteArrayInputStream b = new ByteArrayInputStream(msg);
+		ByteArrayInputStream b = new ByteArrayInputStream(message);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
 	}
