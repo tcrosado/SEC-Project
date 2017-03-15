@@ -1,5 +1,6 @@
 import org.junit.*;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 
@@ -24,33 +25,37 @@ import java.util.UUID;
 public class PwmLibTest {
 
     private static final String PATH_TO_RSAKEYSTORE = "./src/main/resources/keystore.jks";
-    private static final String PATH_TO_AESKEYSTORE = "./src/main/resources/session.jks";
-    private static KeyStore _RSAkeystore;
+    private static final String CLIENT_PUBLIC_KEY = "privatekey";
+    private static KeyStore _keystore;
     private static PwmLib _pwmlib;
     private static String _keystorepw;
     private static UUID _userID;
-    private static KeyStore _AESkeystore;
+    private static MessageManager eminem;
+    private static Key _privateKey;
+    private static Key _publicKey;
 
     @BeforeClass
     public static void setUp() throws Exception {
 
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
-
-        _RSAkeystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _AESkeystore = KeyStore.getInstance("JCEKS");
+    	
+    	
+        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
         _keystorepw = "1234567";
 
         // get user password and file input stream
         char[] password = _keystorepw.toCharArray();
 
-        _RSAkeystore.load(new FileInputStream(PATH_TO_RSAKEYSTORE), password);
-        _AESkeystore.load(new FileInputStream(PATH_TO_AESKEYSTORE), password);
+        _keystore.load(new FileInputStream(PATH_TO_RSAKEYSTORE), password);
 
         _pwmlib = new PwmLib();
-        _pwmlib.init(_AESkeystore, _RSAkeystore,_keystorepw.toCharArray());
+        _pwmlib.init(_keystore,password);
 
         _userID = _pwmlib.register_user();
-        System.out.println("userid: "+_userID.toString());
+        _privateKey = (PrivateKey) _keystore.getKey(CLIENT_PUBLIC_KEY, password);
+        _publicKey = _keystore.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+        
+        eminem = new MessageManager(_userID, _privateKey, _publicKey);
     }
 
     @AfterClass
@@ -115,8 +120,10 @@ public class PwmLibTest {
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+        
+        byte[] result = eminem.getDecypheredMessage(pw);
 
-        Assert.assertArrayEquals(password.getBytes(),pw);
+        Assert.assertArrayEquals(password.getBytes(),result);
     }
 
     @Test
@@ -125,9 +132,13 @@ public class PwmLibTest {
         String username = "testUser";
         String password = "testPass";
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
+        
         String password2 = "testPass2";
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
+        
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        Assert.assertArrayEquals(password2.getBytes(),pw);
+        byte[] result = eminem.getDecypheredMessage(pw);
+        
+        Assert.assertArrayEquals(password2.getBytes(),result);
     }
 }

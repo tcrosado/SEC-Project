@@ -119,9 +119,9 @@ public class Server implements PWMInterface {
             manager.setPublicKey(clientKey);
             manager.verifySignature();
 
-            byte[] domain = manager.getCypheredContent("domain");
-            byte[] username = manager.getCypheredContent("username");
-            byte[] password = manager.getCypheredContent("password");
+            byte[] domain = manager.getContent("domain");
+            byte[] username = manager.getContent("username");
+            byte[] password = manager.getContent("password");
 
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
@@ -178,8 +178,8 @@ public class Server implements PWMInterface {
             manager.setPublicKey(clientKey);
             manager.verifySignature();
 
-            byte[] domain = manager.getCypheredContent("domain");
-            byte[] username = manager.getCypheredContent("username");
+            byte[] domain = manager.getContent("domain");
+            byte[] username = manager.getContent("username");
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
                 if(!login_list.isEmpty()){

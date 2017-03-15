@@ -31,23 +31,19 @@ import java.util.UUID;
  */
 public class PwmLib {
     private final String CLIENT_PUBLIC_KEY = "privatekey";
-    private final String SYMMETRIC_KEY = "mykey";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
-    private static final String PATH_TO_SYMMETRIC_KEYSTORE = "./src/main/resources/session.jks";
     private char[] _ksPassword;
-    private KeyStore _RSAks = null;
+    private KeyStore _ks = null;
     private UUID _userID = null;
     private PWMInterface _server = null;
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
-    private Key _symmetricKey;
     private Key _serverKey;
-    private KeyStore _AESks;
     
 
 
-    public void init(KeyStore AESks, KeyStore RSAks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
+    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -61,12 +57,11 @@ public class PwmLib {
     	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
     	
     	PublicKey _serverKey = certificate.getPublicKey();
-    	this._AESks = AESks;
-        this._RSAks = RSAks;
+    	
+        this._ks = ks;
         this._ksPassword = password;
-        this._publicKey = RSAks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        this._privateKey = (PrivateKey) RSAks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
-        this._symmetricKey = (SecretKeySpec) AESks.getKey(SYMMETRIC_KEY, this._ksPassword);
+        this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+        this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
         //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");
@@ -86,10 +81,10 @@ public class PwmLib {
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
 
-        MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey, _serverKey);
-        content.putContent("domain",domain);
-        content.putContent("username",username);
-        content.putContent("password",password);
+        MessageManager content = new MessageManager(userID, _privateKey, this._publicKey);
+        content.putHashedContent("domain",domain);
+        content.putHashedContent("username",username);
+        content.putCipheredContent("password",password);
 
         _server.put(content.generateMessage());
     }
@@ -100,9 +95,9 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
     	
-    	MessageManager content = new MessageManager(userID, _privateKey,_symmetricKey, _serverKey);
-    	content.putContent("domain", domain);
-    	content.putContent("username", username);
+    	MessageManager content = new MessageManager(userID, _privateKey,this._publicKey);
+    	content.putHashedContent("domain", domain);
+    	content.putHashedContent("username", username);
     	
         return _server.get(content.generateMessage());
 
