@@ -11,12 +11,14 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidNonceException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.PasswordDoesNotExistException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserAlreadyExistsException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserDoesNotExistException;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.rmi.Remote;
 
 
@@ -24,10 +26,12 @@ import java.rmi.Remote;
 public interface PWMInterface extends Remote{
 	
 	UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException;
-
-    void put(byte[] msg) throws RemoteException, UserDoesNotExistException;
+	
+	BigInteger requestNonce(UUID userID) throws RemoteException;
+	
+    void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException;
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
-    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException;
+    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, InvalidNonceException;
     /*UUID userID, byte[] domain, byte[] username*/
 }

@@ -14,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -76,12 +77,12 @@ public class PwmLib {
         return _userID;
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         /*Specification: stores the triple (domain, username, password) on the _server. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
-
-        MessageManager content = new MessageManager(userID, _privateKey, this._publicKey);
+    	BigInteger nonce = _server.requestNonce(userID);
+        MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
         content.putHashedContent("domain",domain);
         content.putHashedContent("username",username);
         content.putCipheredContent("password",password);
@@ -90,12 +91,13 @@ public class PwmLib {
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
-    	
-    	MessageManager content = new MessageManager(userID, _privateKey,this._publicKey);
+
+    	BigInteger nonce = _server.requestNonce(userID);
+    	MessageManager content = new MessageManager(nonce,userID, _privateKey,this._publicKey);
     	content.putHashedContent("domain", domain);
     	content.putHashedContent("username", username);
     	

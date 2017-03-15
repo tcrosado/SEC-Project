@@ -3,6 +3,7 @@ package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -39,17 +40,17 @@ public class MessageManager {
 	}
 	
 	//SERVER SEND MESSAGE
-	public MessageManager(Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(BigInteger nonce,Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
-		_msg = new Message();
+		_msg = new Message(nonce);
 	}
 	
 	//CLIENT SEND MESSAGE
-	public MessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(BigInteger nonce,UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
-		_msg = new Message(userid);
+		_msg = new Message(userid,nonce);
 
 	}
 
@@ -146,7 +147,10 @@ public class MessageManager {
 		else
 			throw new InvalidSignatureException(_msg.getSignature());
 	}
-
+	
+	public BigInteger getNonce(){
+		return _msg.getNonce();
+	}
 	public void setPublicKey(Key pub){
 		_srcPublicKey = pub;
 	}

@@ -34,18 +34,18 @@ class Message implements Serializable{
 
 
 
-	Message() {
+	Message(BigInteger nonce) {
 
 		Calendar cal = Calendar.getInstance();
-		_nonce = new BigInteger(64, new SecureRandom());
+		_nonce = nonce;
 		_content = new HashMap<String, byte[]>();
 
 		_timestamp = new Timestamp(Calendar.getInstance().getTimeInMillis());
 
 	}
 	
-	Message(UUID uid){
-		this();
+	Message(UUID uid,BigInteger nonce){
+		this(nonce);
 		_userid = uid;
 	}
 	

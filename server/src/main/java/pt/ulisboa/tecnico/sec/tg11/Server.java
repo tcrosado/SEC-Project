@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.tg11;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
@@ -51,7 +52,7 @@ public class Server implements PWMInterface {
 
 	private Map<UUID, Key> _userKeys = new HashMap<UUID,Key>();
 	private static Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
-	
+	private Map<UUID,List<BigInteger>> _nonces;
 
     private Registry reg;
     private int port;
@@ -62,6 +63,7 @@ public class Server implements PWMInterface {
 
     public Server(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         this.port = port;
+        _nonces = new HashMap<UUID,List<BigInteger>>();
         reg = LocateRegistry.createRegistry(this.port);
 
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -108,7 +110,7 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException{
+    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
             MessageManager manager = new MessageManager(msg);
@@ -118,7 +120,9 @@ public class Server implements PWMInterface {
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
             manager.verifySignature();
-
+            
+            this.verifyNounce(userID, manager.getNonce());
+            
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
             byte[] password = manager.getContent("password");
@@ -167,7 +171,7 @@ public class Server implements PWMInterface {
     }
 
 
-    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException {
+    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, InvalidNonceException {
     	/*UUID userID, byte[] domain, byte[] username*/
 
         try {
@@ -177,6 +181,8 @@ public class Server implements PWMInterface {
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
             manager.verifySignature();
+            
+            this.verifyNounce(userID, manager.getNonce());
 
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
@@ -240,5 +246,28 @@ public class Server implements PWMInterface {
 	    reg.unbind(SERVER_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
+
+	public BigInteger requestNonce(UUID userID) throws RemoteException {
+		BigInteger nonce = new BigInteger(64, new SecureRandom());
+		System.out.println("gen nonce:"+nonce);
+		List<BigInteger> list = _nonces.get(userID);
+		if(list == null){
+			list = new ArrayList<BigInteger>();
+			_nonces.put(userID, list);
+		}
+		
+		list.add(nonce);
+				
+		return nonce;
+	}
+	
+	private void verifyNounce(UUID userID,BigInteger nonce) throws InvalidNonceException{
+		List<BigInteger> nonceList = _nonces.get(userID);
+		if(nonceList.contains(nonce))
+			nonceList.remove(nonce);
+		else
+			throw new InvalidNonceException(nonce);
+		
+	}
 
 }

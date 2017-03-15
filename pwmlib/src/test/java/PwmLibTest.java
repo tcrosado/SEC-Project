@@ -1,6 +1,7 @@
 import org.junit.*;
 
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
 
@@ -13,8 +14,11 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.UUID;
@@ -30,10 +34,9 @@ public class PwmLibTest {
     private static PwmLib _pwmlib;
     private static String _keystorepw;
     private static UUID _userID;
-    private static MessageManager eminem;
     private static Key _privateKey;
     private static Key _publicKey;
-
+    private static PWMInterface _server;
     @BeforeClass
     public static void setUp() throws Exception {
 
@@ -55,7 +58,9 @@ public class PwmLibTest {
         _privateKey = (PrivateKey) _keystore.getKey(CLIENT_PUBLIC_KEY, password);
         _publicKey = _keystore.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         
-        eminem = new MessageManager(_userID, _privateKey, _publicKey);
+        Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
+        _server = (PWMInterface) registry.lookup("PWMServer");
+       
     }
 
     @AfterClass
@@ -105,7 +110,7 @@ public class PwmLibTest {
 
 */
     @Test
-    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
+    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -115,19 +120,20 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
+    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        
+        BigInteger nonce =_server.requestNonce(_userID);
+        MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
         byte[] result = eminem.getDecypheredMessage(pw);
 
         Assert.assertArrayEquals(password.getBytes(),result);
     }
 
     @Test
-    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException {
+    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -137,6 +143,8 @@ public class PwmLibTest {
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
         
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
+        BigInteger nonce =_server.requestNonce(_userID);
+        MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
         byte[] result = eminem.getDecypheredMessage(pw);
         
         Assert.assertArrayEquals(password2.getBytes(),result);
