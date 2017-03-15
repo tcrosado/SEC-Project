@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.AESMessageManager;
+
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;

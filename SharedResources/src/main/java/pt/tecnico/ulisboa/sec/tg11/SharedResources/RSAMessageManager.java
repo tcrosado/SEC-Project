@@ -49,7 +49,7 @@ public class RSAMessageManager {
 	public RSAMessageManager(UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPublicKey = srcPublicKey;
 		_srcPrivateKey = srcPrivateKey;
-		_msg = new Message(userid,_destPublicKey);
+		_msg = new Message(userid,srcPublicKey);
 	}
 
 	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
