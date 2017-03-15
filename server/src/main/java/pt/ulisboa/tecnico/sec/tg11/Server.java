@@ -7,11 +7,12 @@ import java.nio.ByteBuffer;
 import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.AESMessageManager;
+
+import pt.ulisboa.tecnico.sec.tg11.Login;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.RSAMessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
-import pt.ulisboa.tecnico.sec.tg11.Login;
+
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -28,6 +29,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,9 +182,13 @@ public class Server implements PWMInterface {
             byte[] username = manager.getCypheredContent("username");
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
-
                 if(!login_list.isEmpty()){
+                	
                     for (Login l: login_list) {
+                    	System.out.println("domain recebido: "+Base64.getEncoder().encodeToString((domain)).substring(0, 10));
+                    	System.out.println("domain comparado: "+ Base64.getEncoder().encodeToString(l.getDomain()).substring(0, 10));
+                    	System.out.println("username recebido: "+Base64.getEncoder().encodeToString((username)).substring(0, 10));
+                    	System.out.println("username comparado: "+ Base64.getEncoder().encodeToString(l.getUsername()).substring(0, 10));
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
                             return l.getPassword();
                         }
