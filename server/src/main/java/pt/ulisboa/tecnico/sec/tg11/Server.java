@@ -114,7 +114,6 @@ public class Server implements PWMInterface {
         try {
             MessageManager manager = new MessageManager(msg);
             UUID userID = manager.getUserID();
-            System.out.println("put: "+userID);
 
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
@@ -138,7 +137,6 @@ public class Server implements PWMInterface {
                         }
                     }
                 }
-                System.out.println("This is the end");
                 List<Login> l = new ArrayList<Login>(login_list);
                 l.add(new Login(username, domain, password));
                 _userlogin.put(userID, l);
@@ -244,7 +242,6 @@ public class Server implements PWMInterface {
 
 	public BigInteger requestNonce(UUID userID) throws RemoteException {
 		BigInteger nonce = new BigInteger(64, new SecureRandom());
-		System.out.println("gen nonce:"+nonce);
 		List<BigInteger> list = _nonces.get(userID);
 		if(list == null){
 			list = new ArrayList<BigInteger>();
