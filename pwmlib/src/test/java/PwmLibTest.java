@@ -69,53 +69,12 @@ public class PwmLibTest {
     }
 
 
-  /*  @Test
-    public void testeverything() throws RemoteException, NotBoundException, UnrecoverableKeyException, UserAlreadyExistsException, NoSuchAlgorithmException, KeyStoreException, UserDoesNotExistException, PasswordDoesNotExistException, CertificateException, FileNotFoundException {
-
-        _pwmlib = new PwmLib();
-        _pwmlib.init(_keystore, _keystorepw.toCharArray());
-
-        _userID = _pwmlib.register_user();
-
-        String domain = "www.google.pt";
-        String username = "testUser";
-        String password = "testPass";
-        String password2 = "testPass2";
-
-        System.out.println("Testeverything -> UserID: " + _userID);
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
-        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-
-        System.out.println("Testeverything -> PasswordEnviada: " + password);
-        System.out.println("Testeverything -> PasswordObtida: " + new String(pw));
-        Assert.assertEquals(password, new String(pw));
-
-        _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-        pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-
-        System.out.println("Testeverything -> PasswordEnviada: " + password2);
-        System.out.println("Testeverything -> PasswordObtida: " + new String(pw));
-        Assert.assertEquals(password2, new String(pw));
-    }*/
-
-/*
-    @Test
-    public void register_user() throws  UserAlreadyExistsException, IOException, UserDoesNotExistException, NoSuchAlgorithmException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, BadPaddingException, InvalidSignatureException, KeyStoreException, IllegalBlockSizeException, ClassNotFoundException {
-
-        _userID = _pwmlib.register_user();
-        System.out.println("UserID: " + _userID);
-        Assert.assertNotNull(_userID);
-        System.out.println("Teste1 ");
-    }
-
-*/
     @Test
     public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
 
-        System.out.println("Save userid: "+_userID.toString());
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password.getBytes());
     }
 
