@@ -109,7 +109,7 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException{
+    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
             MessageManager manager = new MessageManager(msg);
@@ -152,8 +152,6 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (SignatureException e) {
             e.printStackTrace();
-        } catch (InvalidSignatureException e) {
-            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (BadPaddingException e) {
@@ -172,7 +170,9 @@ public class Server implements PWMInterface {
 
     public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, InvalidNonceException {
     	/*UUID userID, byte[] domain, byte[] username*/
-
+        /*TODO
+        *  - Server returning messages through the MessageManager
+        * */
         try {
 
         	MessageManager manager = new MessageManager(msg);

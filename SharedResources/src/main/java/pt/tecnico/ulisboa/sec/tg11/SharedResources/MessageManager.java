@@ -145,7 +145,7 @@ public class MessageManager {
 		if(sign.verify(_msg.getSignature()))
 			return;
 		else
-			throw new InvalidSignatureException(_msg.getSignature());
+			throw new InvalidSignatureException();
 	}
 	
 	public BigInteger getNonce(){
