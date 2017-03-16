@@ -29,6 +29,7 @@ import java.util.UUID;
 public class PwmLibTest {
 
     private static final String PATH_TO_RSAKEYSTORE = "./src/main/resources/keystore.jks";
+    private static final String PATH_TO_RSAKEYSTORE2 = "./src/main/resources/user2.jks";
     private static final String CLIENT_PUBLIC_KEY = "privatekey";
     private static KeyStore _keystore;
     private static PwmLib _pwmlib;
@@ -37,6 +38,12 @@ public class PwmLibTest {
     private static Key _privateKey;
     private static Key _publicKey;
     private static PWMInterface _server;
+    private static UUID _userID2;
+    private static PwmLib _pwmlib2;
+    private static KeyStore _keystore2;
+    private static Key _privateKey2;
+    private static Key _publicKey2;
+    
     @BeforeClass
     public static void setUp() throws Exception {
 
@@ -44,19 +51,27 @@ public class PwmLibTest {
     	
     	
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _keystore2 = KeyStore.getInstance(KeyStore.getDefaultType());
         _keystorepw = "1234567";
 
         // get user password and file input stream
         char[] password = _keystorepw.toCharArray();
 
         _keystore.load(new FileInputStream(PATH_TO_RSAKEYSTORE), password);
+        _keystore2.load(new FileInputStream(PATH_TO_RSAKEYSTORE2), password);
 
         _pwmlib = new PwmLib();
+        _pwmlib2 = new PwmLib();
         _pwmlib.init(_keystore,password);
+        _pwmlib2.init(_keystore2,password);
 
         _userID = _pwmlib.register_user();
         _privateKey = (PrivateKey) _keystore.getKey(CLIENT_PUBLIC_KEY, password);
         _publicKey = _keystore.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+        
+        _userID2 = _pwmlib2.register_user();
+        _privateKey2 = (PrivateKey) _keystore2.getKey(CLIENT_PUBLIC_KEY, password);
+        _publicKey2 = _keystore2.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         
         Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
         _server = (PWMInterface) registry.lookup("PWMServer");
@@ -79,7 +94,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws UserDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, InvalidRequestException {
+    public void retrieve_password() throws UserDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, InvalidRequestException, WrongUserIDException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -92,7 +107,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrive_altered_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, InvalidRequestException {
+    public void retrive_altered_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, InvalidRequestException, WrongUserIDException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -110,7 +125,7 @@ public class PwmLibTest {
     }
     
     @Test(expected = InvalidRequestException.class)
-    public void unexisting_pass() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException{
+    public void unexisting_pass() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException{
     	
     	String domain = "www.google.pt";
     	String username = "juanito";
@@ -122,5 +137,11 @@ public class PwmLibTest {
     @Test(expected = UserAlreadyExistsException.class)
     public void wrong_register() throws UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, ClassNotFoundException, UserAlreadyExistsException, IOException, InvalidSignatureException, UserDoesNotExistException{
     	_pwmlib.register_user();
+    }
+    
+    @Test(expected = WrongUserIDException.class)
+    public void retrieve_invalid_user() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException{
+    	UUID u = UUID.randomUUID();
+    	_pwmlib.retrieve_password(u, "domain".getBytes(), "username".getBytes());
     }
 }

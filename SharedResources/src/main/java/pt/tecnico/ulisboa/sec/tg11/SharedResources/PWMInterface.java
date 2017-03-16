@@ -16,6 +16,7 @@ import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureEx
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidRequestException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserAlreadyExistsException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.WrongUserIDException;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -33,6 +34,6 @@ public interface PWMInterface extends Remote{
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
 
-    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException;
+    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException;
     /*UUID userID, byte[] domain, byte[] username*/
 }
