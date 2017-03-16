@@ -47,7 +47,6 @@ public class Server implements PWMInterface {
     private final String KEY_NAME = "privatekey";
     private static KeyStore _keystore;
     private static String _keystorepw;
-    //private Map<UUID, Key> _sessionKeys = new HashMap<UUID,Key>();
     private PrivateKey _privateKey;
 
 	private Map<UUID, Key> _userKeys = new HashMap<UUID,Key>();
@@ -191,10 +190,6 @@ public class Server implements PWMInterface {
                 if(!login_list.isEmpty()){
                 	
                     for (Login l: login_list) {
-                    	System.out.println("domain recebido: "+Base64.getEncoder().encodeToString((domain)).substring(0, 10));
-                    	System.out.println("domain comparado: "+ Base64.getEncoder().encodeToString(l.getDomain()).substring(0, 10));
-                    	System.out.println("username recebido: "+Base64.getEncoder().encodeToString((username)).substring(0, 10));
-                    	System.out.println("username comparado: "+ Base64.getEncoder().encodeToString(l.getUsername()).substring(0, 10));
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
                             return l.getPassword();
                         }
