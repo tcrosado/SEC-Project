@@ -2,13 +2,8 @@ package pt.ulisboa.tecnico.sec.tg11;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
-
-import java.rmi.Remote;
-import java.rmi.RemoteException;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -18,7 +13,7 @@ import java.security.SecureRandom;
 
 public abstract class AbstractTest {
 
-		PWMInterface serverRemote;
+		PWMInterface _serverRemote;
 		KeyPair keypair;
 		Server serverObject;
 	@Before
@@ -31,16 +26,16 @@ public abstract class AbstractTest {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-			serverRemote = (PWMInterface) registry.lookup("PWMServer");
+			_serverRemote = (PWMInterface) registry.lookup("PWMServer");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
-		SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
-		keyGen.initialize(1024, random);
 
-		keypair = keyGen.genKeyPair();
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+		keyPairGenerator.initialize(1024);
+		keypair = keyPairGenerator.genKeyPair();
+
 	}
 
 	@After
