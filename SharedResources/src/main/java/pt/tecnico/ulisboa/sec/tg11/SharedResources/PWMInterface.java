@@ -13,7 +13,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidNonceException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
-import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.PasswordDoesNotExistException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidRequestException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserAlreadyExistsException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.UserDoesNotExistException;
 
@@ -32,6 +32,6 @@ public interface PWMInterface extends Remote{
     void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException;
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
-    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, InvalidNonceException;
+    byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException;
     /*UUID userID, byte[] domain, byte[] username*/
 }

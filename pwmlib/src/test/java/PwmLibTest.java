@@ -79,7 +79,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrieve_password() throws UserDoesNotExistException, PasswordDoesNotExistException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
+    public void retrieve_password() throws UserDoesNotExistException, InvalidRequestException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -92,7 +92,7 @@ public class PwmLibTest {
     }
 
     @Test
-    public void retrive_altered_password() throws UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
+    public void retrive_altered_password() throws UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -107,5 +107,20 @@ public class PwmLibTest {
         byte[] result = eminem.getDecypheredMessage(pw);
         
         Assert.assertArrayEquals(password2.getBytes(),result);
+    }
+    
+    @Test(expected = InvalidRequestException.class)
+    public void unexisting_pass() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException{
+    	
+    	String domain = "www.google.pt";
+    	String username = "juanito";
+    	
+    	_pwmlib.retrieve_password(_userID, domain.getBytes(), username.getBytes());
+    	
+    }
+    
+    @Test(expected = UserAlreadyExistsException.class)
+    public void wrong_register() throws UnrecoverableKeyException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, ClassNotFoundException, UserAlreadyExistsException, IOException, InvalidSignatureException, UserDoesNotExistException{
+    	_pwmlib.register_user();
     }
 }

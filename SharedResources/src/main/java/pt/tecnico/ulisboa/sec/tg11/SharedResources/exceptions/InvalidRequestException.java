@@ -2,7 +2,7 @@ package pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions;
 
 import java.util.UUID;
 
-public class PasswordDoesNotExistException extends Exception {
+public class InvalidRequestException extends Exception {
 
 	/**
 	 *
@@ -14,7 +14,7 @@ public class PasswordDoesNotExistException extends Exception {
 	private byte[] username;
 
 
-	public PasswordDoesNotExistException(UUID userID, byte[] domain, byte[] username) {
+	public InvalidRequestException(UUID userID, byte[] domain, byte[] username) {
 		userID = userID;
 	}
 	

@@ -115,7 +115,6 @@ public class Server implements PWMInterface {
         try {
             MessageManager manager = new MessageManager(msg);
             UUID userID = manager.getUserID();
-            System.out.println("put: "+userID);
 
             Key clientKey = _userKeys.get(userID);
             manager.setPublicKey(clientKey);
@@ -170,7 +169,7 @@ public class Server implements PWMInterface {
     }
 
 
-    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, PasswordDoesNotExistException, InvalidNonceException {
+    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException {
     	/*UUID userID, byte[] domain, byte[] username*/
 
         try {
@@ -195,7 +194,7 @@ public class Server implements PWMInterface {
                         }
                     }
                 }
-                throw new PasswordDoesNotExistException(userID, domain, username);
+                throw new InvalidRequestException(userID, domain, username);
             }
             else
                 throw new UserDoesNotExistException(userID);
