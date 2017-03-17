@@ -85,7 +85,7 @@ public class PwmLibTest {
 
 
     @Test
-    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+    public void save_password() throws UserDoesNotExistException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
         String domain = "www.google.pt";
         String username = "testUser";
         String password = "testPass";
@@ -155,4 +155,23 @@ public class PwmLibTest {
     	_pwmlib2.retrieve_password(_userID, domain, username);
     	
     }
+    
+    @Test(expected = InvalidSignatureException.class)
+    public void impersonate_put() throws InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, IOException, InvalidNonceException, InvalidSignatureException, InvalidRequestException, WrongUserIDException{
+    	byte[] domain = "www.google.pt".getBytes();
+    	byte[] username = "juanito".getBytes();
+    	byte[] password = "mypass".getBytes();
+    	
+    	_pwmlib.save_password(_userID, domain, username, password);
+    	_pwmlib2.save_password(_userID, domain, username, password);
+    	
+    }
+    
+    @Test(expected = WrongUserIDException.class)
+    public void put_invalid_user() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException, InvalidSignatureException{
+    	UUID u = UUID.randomUUID();
+    	_pwmlib.save_password(u, "domain".getBytes(), "username".getBytes(), "pass".getBytes());
+    }
+    
+    
 }

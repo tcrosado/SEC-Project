@@ -109,13 +109,17 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException{
+    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
             MessageManager manager = new MessageManager(msg);
             UUID userID = manager.getUserID();
 
             Key clientKey = _userKeys.get(userID);
+            
+            if(clientKey == null)
+            	throw new WrongUserIDException(userID);
+            
             manager.setPublicKey(clientKey);
             manager.verifySignature();
             

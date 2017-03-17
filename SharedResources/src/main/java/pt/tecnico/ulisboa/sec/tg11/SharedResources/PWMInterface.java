@@ -30,7 +30,7 @@ public interface PWMInterface extends Remote{
 	
 	BigInteger requestNonce(UUID userID) throws RemoteException;
 	
-    void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException,InvalidSignatureException;
+    void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException,InvalidSignatureException, WrongUserIDException;
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
 
