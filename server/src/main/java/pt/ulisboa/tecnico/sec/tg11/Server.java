@@ -207,8 +207,6 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (SignatureException e) {
             e.printStackTrace();
-        } catch (InvalidSignatureException e) {
-            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (BadPaddingException e) {
