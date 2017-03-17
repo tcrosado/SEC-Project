@@ -94,8 +94,8 @@ public class ServerTest extends AbstractTest{
 	}
 
 
-	@Test (expected = PasswordDoesNotExistException.class)
-	public void testNonExistentGet() throws IOException, UserDoesNotExistException, PasswordDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	@Test (expected = InvalidRequestException.class)
+	public void testNonExistentGet() throws IOException, UserDoesNotExistException, InvalidRequestException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		byte[] empty = new byte[0];
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",empty);
@@ -106,7 +106,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testGet() throws IOException, UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void testGet() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -128,7 +128,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testGetUpdated() throws IOException, UserDoesNotExistException, PasswordDoesNotExistException, NoSuchPaddingException, SignatureException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void testGetUpdated() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchPaddingException, SignatureException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -170,7 +170,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test(expected = InvalidNonceException.class)
-	public void replayAttackTest() throws IOException, UserDoesNotExistException, PasswordDoesNotExistException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
 			String domain = "www.google.pt";
 			String username = "testUser";
 			String password = "testPass";
