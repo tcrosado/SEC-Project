@@ -166,7 +166,7 @@ public class Server implements PWMInterface {
     }
 
 
-    public byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException {
+    public byte[] get(byte[] msg) throws RemoteException, InvalidSignatureException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException {
     	/*UUID userID, byte[] domain, byte[] username*/
         /*TODO
         *  - Server returning messages through the MessageManager
@@ -182,6 +182,7 @@ public class Server implements PWMInterface {
             
             manager.setPublicKey(clientKey);
             manager.verifySignature();
+           
             
             this.verifyNounce(userID, manager.getNonce());
 

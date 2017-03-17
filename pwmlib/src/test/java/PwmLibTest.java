@@ -125,7 +125,7 @@ public class PwmLibTest {
     }
     
     @Test(expected = InvalidRequestException.class)
-    public void unexisting_pass() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException{
+    public void unexisting_pass() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException, InvalidSignatureException{
     	
     	String domain = "www.google.pt";
     	String username = "juanito";
@@ -140,8 +140,19 @@ public class PwmLibTest {
     }
     
     @Test(expected = WrongUserIDException.class)
-    public void retrieve_invalid_user() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException{
+    public void retrieve_invalid_user() throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, InvalidRequestException, IOException, InvalidNonceException, WrongUserIDException, InvalidSignatureException{
     	UUID u = UUID.randomUUID();
     	_pwmlib.retrieve_password(u, "domain".getBytes(), "username".getBytes());
+    }
+    
+    @Test(expected = InvalidSignatureException.class)
+    public void impersonate_request() throws InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, SignatureException, InvalidAlgorithmParameterException, ClassNotFoundException, UserDoesNotExistException, IOException, InvalidNonceException, InvalidSignatureException, InvalidRequestException, WrongUserIDException{
+    	byte[] domain = "www.google.pt".getBytes();
+    	byte[] username = "juanito".getBytes();
+    	byte[] password = "mypass".getBytes();
+    	
+    	_pwmlib.save_password(_userID, domain, username, password);
+    	_pwmlib2.retrieve_password(_userID, domain, username);
+    	
     }
 }
