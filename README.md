@@ -10,6 +10,5 @@
     
 #Running Project:
   1) run mvn clean install at "SharedResources" package
-  2) run mvn clean package at "server" package in order to run server tests
-  3) run mvn clean compile exec:java at "server" package
-  4) run mvn clean package at "pwmlib" package in order to run client tests
+  2) run mvn clean package exec:java at "server" package in order to run server tests
+  3) run mvn clean package at "pwmlib" package in order to run client tests
