@@ -37,7 +37,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -51,7 +51,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password2 = "testPass2";
@@ -72,7 +72,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String username2 = "testUser2";
@@ -170,7 +170,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test(expected = InvalidNonceException.class)
-	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException {
+	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 			String domain = "www.google.pt";
 			String username = "testUser";
 			String password = "testPass";
@@ -185,7 +185,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test(expected = InvalidSignatureException.class)
-	public void tamperMessage() throws BadPaddingException, InvalidSignatureException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException {
+	public void tamperMessage() throws BadPaddingException, InvalidSignatureException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, WrongUserIDException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
