@@ -12,3 +12,11 @@
   1) run mvn clean install at "SharedResources" package
   2) run mvn clean package exec:java at "server" package in order to run server tests
   3) run mvn clean package at "pwmlib" package in order to run client tests
+
+
+Questões a resolver:
+
+ ~Assinar mensagens com HMAC server->client
+ ~Introduzir Salt nos hashes enviados para o server
+ ~Introduzir acknowledges usando HMAC server->client
+ ~Garantir não-repudio criando lista de logs no servidor
