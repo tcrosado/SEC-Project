@@ -16,7 +16,7 @@
 
 Questões a resolver:
 
- 1)Assinar mensagens com HMAC server->client
- 2)Introduzir Salt nos hashes enviados para o server
- 3)Introduzir acknowledges usando HMAC server->client
- 4)Garantir não-repudio criando lista de logs no servidor
+ 1) Assinar mensagens com HMAC server->client
+ 2) Introduzir Salt nos hashes enviados para o server
+ 3) Introduzir acknowledges usando HMAC server->client
+ 4) Garantir não-repudio criando lista de logs no servidor
