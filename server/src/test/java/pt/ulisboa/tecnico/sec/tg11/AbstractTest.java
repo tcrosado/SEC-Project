@@ -32,7 +32,7 @@ public abstract class AbstractTest {
 		X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
 
 		_serverPublicKey = certificate.getPublicKey();
-		
+
 		String text = "RMI Test Message";
 
 		try {

@@ -21,6 +21,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 /**
@@ -28,6 +30,7 @@ import java.util.UUID;
  */
 public class PwmLibTest {
 
+    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
     private static final String PATH_TO_RSAKEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_RSAKEYSTORE2 = "./src/main/resources/user2.jks";
     private static final String CLIENT_PUBLIC_KEY = "privatekey";
@@ -43,12 +46,18 @@ public class PwmLibTest {
     private static KeyStore _keystore2;
     private static Key _privateKey2;
     private static Key _publicKey2;
+    private static PublicKey _serverPublicKey;
     
     @BeforeClass
     public static void setUp() throws Exception {
 
         /* http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html */
-    	
+
+        FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
+        CertificateFactory f = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
+
+        _serverPublicKey = certificate.getPublicKey();
     	
         _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
         _keystore2 = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -99,7 +108,9 @@ public class PwmLibTest {
         String username = "testUser";
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        BigInteger nonce =_server.requestNonce(_userID);
+        byte[] nonceReceived =_server.requestNonce(_userID);
+        MessageManager receiveManager = verifyMessage(nonceReceived);
+        BigInteger nonce = new BigInteger(receiveManager.getContent("Nonce"));
         MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
         byte[] result = eminem.getDecypheredMessage(pw);
 
@@ -117,7 +128,9 @@ public class PwmLibTest {
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
         
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
-        BigInteger nonce =_server.requestNonce(_userID);
+        byte[] nonceReceived =_server.requestNonce(_userID);
+        MessageManager receiveManager = verifyMessage(nonceReceived);
+        BigInteger nonce = new BigInteger(receiveManager.getContent("Nonce"));
         MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
         byte[] result = eminem.getDecypheredMessage(pw);
         
@@ -172,6 +185,11 @@ public class PwmLibTest {
     	UUID u = UUID.randomUUID();
     	_pwmlib.save_password(u, "domain".getBytes(), "username".getBytes(), "pass".getBytes());
     }
-    
-    
+
+    private MessageManager verifyMessage(byte[] msg) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
+        MessageManager mm = new MessageManager(msg);
+        mm.setPublicKey(_serverPublicKey);
+        mm.verifySignature();
+        return mm;
+    }
 }

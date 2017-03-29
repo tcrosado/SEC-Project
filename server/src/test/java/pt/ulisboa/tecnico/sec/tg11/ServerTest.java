@@ -193,7 +193,6 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		byte[] result2 =_serverRemote.get(manager.generateMessage());
-		//FIXME
 		MessageManager received = verifyMessage(result2);
 		byte[] retrieved = manager.getDecypheredMessage(received.getContent("Password"));
 

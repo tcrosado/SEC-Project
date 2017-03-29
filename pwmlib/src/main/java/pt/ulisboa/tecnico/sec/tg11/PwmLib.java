@@ -57,7 +57,7 @@ public class PwmLib {
     	CertificateFactory f = CertificateFactory.getInstance("X.509");
     	X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
     	
-    	PublicKey _serverKey = certificate.getPublicKey();
+    	this._serverKey = certificate.getPublicKey();
     	
         this._ks = ks;
         this._ksPassword = password;
@@ -72,8 +72,9 @@ public class PwmLib {
     public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException {
         /*Specification: registers the user on the _server, initializing the required data structures to
         securely store the passwords.*/
-     
-        this._userID = _server.register(_publicKey);
+        byte[] result = _server.register(_publicKey);
+        MessageManager receiveManager = verifySignature(result);
+        this._userID = UUID.fromString(new String(receiveManager.getContent("UUID")));
         return _userID;
     }
 
@@ -81,13 +82,17 @@ public class PwmLib {
         /*Specification: stores the triple (domain, username, password) on the _server. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
-    	BigInteger nonce = _server.requestNonce(userID);
+
+        byte[] result = _server.requestNonce(userID);
+        MessageManager mm = verifySignature(result);
+    	BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
         MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
         content.putHashedContent("domain",domain);
         content.putHashedContent("username",username);
         content.putCipheredContent("password",password);
 
         _server.put(content.generateMessage());
+        //FIXME Verify ACK
     }
 
 
@@ -96,12 +101,16 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
 
-    	BigInteger nonce = _server.requestNonce(userID);
+        byte[] result = _server.requestNonce(userID);
+        MessageManager mm = verifySignature(result);
+        BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
     	MessageManager content = new MessageManager(nonce,userID, _privateKey,this._publicKey);
     	content.putHashedContent("domain", domain);
     	content.putHashedContent("username", username);
     	
-        return _server.get(content.generateMessage());
+        byte[] passMsg = _server.get(content.generateMessage());
+        MessageManager receiveManager = verifySignature(passMsg);
+        return receiveManager.getContent("Password");
 
     }
 
@@ -111,4 +120,10 @@ public class PwmLib {
 
     }
 
+    private MessageManager verifySignature(byte[] msg) throws BadPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, SignatureException, InvalidKeyException, InvalidSignatureException, NoSuchPaddingException {
+        MessageManager mm = new MessageManager(msg);
+        mm.setPublicKey(_serverKey);
+        mm.verifySignature();
+        return mm;
+    }
 }
