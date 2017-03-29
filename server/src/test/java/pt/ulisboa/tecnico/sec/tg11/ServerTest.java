@@ -45,7 +45,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testPut() throws NoSuchAlgorithmException, GenericException, InvalidSignatureException, RemoteException, WrongUserIDException, UserDoesNotExistException, InvalidNonceException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -63,7 +63,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testUpdatePasswordPut() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password2 = "testPass2";
@@ -95,7 +95,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testCreateUsernamePut() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String username2 = "testUser2";
@@ -127,7 +127,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test (expected = InvalidRequestException.class)
-	public void testNonExistentGet() throws IOException, UserDoesNotExistException, InvalidRequestException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testNonExistentGet() throws NoSuchAlgorithmException, GenericException, RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidRequestException, WrongUserIDException, InvalidSignatureException {
 		byte[] empty = new byte[0];
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",empty);
@@ -138,7 +138,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testGet() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testGet() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException, InvalidRequestException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -170,7 +170,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testGetUpdated() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchPaddingException, SignatureException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testGetUpdated() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException, InvalidRequestException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -230,7 +230,7 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test(expected = InvalidNonceException.class)
-	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void replayAttackTest() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException {
 			String domain = "www.google.pt";
 			String username = "testUser";
 			String password = "testPass";
@@ -245,7 +245,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test(expected = InvalidSignatureException.class)
-	public void tamperMessage() throws BadPaddingException, InvalidSignatureException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, WrongUserIDException {
+	public void tamperMessage() throws NoSuchAlgorithmException, GenericException, RemoteException, WrongUserIDException, InvalidSignatureException, UserDoesNotExistException, InvalidNonceException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
@@ -261,7 +261,7 @@ public class ServerTest extends AbstractTest{
 		_serverRemote.put(msg);
 	}
 
-	private MessageManager verifyMessage(byte[] msg) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
+	private MessageManager verifyMessage(byte[] msg) throws InvalidSignatureException, GenericException {
 		MessageManager mm = new MessageManager(msg);
 		mm.setPublicKey(_serverPublicKey);
 		mm.verifySignature();

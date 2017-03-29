@@ -1,5 +1,7 @@
 package pt.tecnico.ulisboa.sec.tg11.SharedResources;
 
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt.GetOptsException;
+import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.GenericException;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.InvalidSignatureException;
 
 import java.io.*;
@@ -32,74 +34,90 @@ public class MessageManager {
 
 
 	//RECEIVES MESSAGE
-	public MessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
+	public MessageManager(byte[] message) throws InvalidSignatureException, GenericException {
 
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
-		ObjectInputStream obj = new ObjectInputStream(b);
-		_msg = (Message) obj.readObject();
+		ObjectInputStream obj = null;
+		try {
+			obj = new ObjectInputStream(b);
+			_msg = (Message) obj.readObject();
+		} catch (IOException e) {
+			throw new GenericException(e);
+		} catch (ClassNotFoundException e) {
+			throw new GenericException(e);
+		}
 	}
 	
 	//SERVER SEND MESSAGE
-	public MessageManager(BigInteger nonce,Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(BigInteger nonce,Key srcPrivateKey,Key srcPublicKey){
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
 		_msg = new Message(nonce);
 	}
 	
 	//CLIENT SEND MESSAGE
-	public MessageManager(BigInteger nonce,UUID userid, Key srcPrivateKey, Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
+	public MessageManager(BigInteger nonce,UUID userid, Key srcPrivateKey, Key srcPublicKey){
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
 		_msg = new Message(userid,nonce);
 
 	}
 
-	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
-			
-		Cipher c = Cipher.getInstance("RSA");
-	    c.init(Cipher.ENCRYPT_MODE, key);
-	    
-	    byte[] v  = c.doFinal(value);
-	     
-	    return v;
+	private byte[] rsaCipherValue(byte[] value, Key key) throws GenericException {
+		Cipher c = null;
+		try {
+			c = Cipher.getInstance("RSA");
+			c.init(Cipher.ENCRYPT_MODE, key);
+			byte[] v  = c.doFinal(value);
+			return v;
+		} catch (Exception e) {
+			throw new GenericException(e);
+		}
+
+
 	}
 	
-	private byte[] rsaDecipherValue(byte[] value, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-		
-		Cipher d = Cipher.getInstance("RSA");
-	    d.init(Cipher.DECRYPT_MODE, key);
-	    
-	    byte[] v = d.doFinal(value);
-	    
-	    return v;
+	private byte[] rsaDecipherValue(byte[] value, Key key) throws GenericException {
+		Cipher d = null;
+		try {
+			d = Cipher.getInstance("RSA");
+			d.init(Cipher.DECRYPT_MODE, key);
+			byte[] v = d.doFinal(value);
+			return v;
+		} catch (Exception e) {
+			throw new GenericException(e);
+		}
+
 	}
 
-	public byte[] generateMessage() throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, ClassNotFoundException {
-		generateSignature();
-		ByteArrayOutputStream b  = new ByteArrayOutputStream();
-		ObjectOutputStream obj = new ObjectOutputStream(b);
-		obj.writeObject(_msg);
-		obj.flush();
-		obj.close();
-		return b.toByteArray();
+	public byte[] generateMessage() throws GenericException {
+		try {
+			generateSignature();
+			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ObjectOutputStream obj = new ObjectOutputStream(b);
+			obj.writeObject(_msg);
+			obj.flush();
+			obj.close();
+			return b.toByteArray();
+		} catch (Exception e) {
+			throw new GenericException(e);
+		}
 	}
 	
-	public byte[] getDecypheredMessage(byte[] value) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+	public byte[] getDecypheredMessage(byte[] value) throws GenericException {
 		return this.rsaDecipherValue(value, this._srcPrivateKey);
 	}
 
-	public void putPlainTextContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, IOException {
-		
+	public void putPlainTextContent(String key, byte[] value) throws GenericException {
 		_msg.addContent(key, value);
 	}
 	
-	public void putCipheredContent(String key, byte[] value) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
-		
+	public void putCipheredContent(String key, byte[] value) throws GenericException{
 		_msg.addContent(key, this.rsaCipherValue(value, this._srcPublicKey));
 	}
 	
 	public void putHashedContent(String key, byte[] value) throws NoSuchAlgorithmException{
-		
+
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		byte[] digest = md.digest(value);
 		
@@ -114,31 +132,43 @@ public class MessageManager {
 		return _msg.getUserID();
 	}
 
-	private byte[] serializeContent() throws IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException, InvalidKeyException {
+	private byte[] serializeContent() throws GenericException{
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
-		ObjectOutputStream obj = new ObjectOutputStream(b);
-		obj.writeObject(_msg.getAllContent());
-		obj.writeObject(_msg.getNonce());
-		obj.writeObject(_msg.getTimestamp());
-		obj.writeObject(_msg.getUserID());
-		obj.flush();
-		obj.close();
+		try {
+			ObjectOutputStream obj = new ObjectOutputStream(b);
+			obj.writeObject(_msg.getAllContent());
+			obj.writeObject(_msg.getNonce());
+			obj.writeObject(_msg.getTimestamp());
+			obj.writeObject(_msg.getUserID());
+			obj.flush();
+			obj.close();
+		}catch (IOException e){
+			throw new GenericException(e);
+		}
 		return b.toByteArray();
 	}
 
 	
-	public void generateSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
-		
-		Signature sign = Signature.getInstance("SHA256withRSA");
-		sign.initSign((PrivateKey) _srcPrivateKey);
-		sign.update(serializeContent());
-		_msg.setSignature(sign.sign());
+	public void generateSignature() throws GenericException {
+
+		Signature sign = null;
+		try {
+			sign = Signature.getInstance("SHA256withRSA");
+			sign.initSign((PrivateKey) _srcPrivateKey);
+			sign.update(serializeContent());
+			_msg.setSignature(sign.sign());
+		} catch (Exception e) {
+			throw new GenericException(e);
+		}
 	}
 
 	
-	public void verifySignature() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidSignatureException, BadPaddingException, IllegalBlockSizeException, ClassNotFoundException {
-		
-		Signature sign = Signature.getInstance("SHA256withRSA");
+	public void verifySignature() throws GenericException, InvalidSignatureException {
+
+		Signature sign = null;
+		try {
+			sign = Signature.getInstance("SHA256withRSA");
+
 		sign.initVerify((PublicKey) _srcPublicKey);
 		sign.update(serializeContent());
 
@@ -146,6 +176,14 @@ public class MessageManager {
 			return;
 		else
 			throw new InvalidSignatureException();
+
+		} catch (NoSuchAlgorithmException e) {
+			throw new GenericException(e);
+		} catch (SignatureException e) {
+			throw new GenericException(e);
+		} catch (InvalidKeyException e) {
+			throw new GenericException(e);
+		}
 	}
 	
 	public BigInteger getNonce(){

@@ -44,7 +44,7 @@ public class PwmLib {
     
 
 
-    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
+    public void init(KeyStore ks,char[] password) throws FileNotFoundException, CertificateException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, RemoteException, NotBoundException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -69,8 +69,7 @@ public class PwmLib {
         
     }
 
-    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException {
-        /*Specification: registers the user on the _server, initializing the required data structures to
+    public UUID register_user() throws UserAlreadyExistsException, RemoteException, InvalidSignatureException, GenericException {        /*Specification: registers the user on the _server, initializing the required data structures to
         securely store the passwords.*/
         byte[] result = _server.register(_publicKey);
         MessageManager receiveManager = verifySignature(result);
@@ -78,7 +77,7 @@ public class PwmLib {
         return _userID;
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws RemoteException, InvalidSignatureException, GenericException, NoSuchAlgorithmException, WrongUserIDException, UserDoesNotExistException, InvalidNonceException {
         /*Specification: stores the triple (domain, username, password) on the _server. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _server, or to an update otherwise.
         */
@@ -96,7 +95,7 @@ public class PwmLib {
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, InvalidRequestException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, WrongUserIDException, InvalidSignatureException {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws RemoteException, InvalidSignatureException, GenericException, NoSuchAlgorithmException, WrongUserIDException, InvalidRequestException, UserDoesNotExistException, InvalidNonceException {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
@@ -120,7 +119,7 @@ public class PwmLib {
 
     }
 
-    private MessageManager verifySignature(byte[] msg) throws BadPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, SignatureException, InvalidKeyException, InvalidSignatureException, NoSuchPaddingException {
+    private MessageManager verifySignature(byte[] msg) throws InvalidSignatureException, GenericException {
         MessageManager mm = new MessageManager(msg);
         mm.setPublicKey(_serverKey);
         mm.verifySignature();
