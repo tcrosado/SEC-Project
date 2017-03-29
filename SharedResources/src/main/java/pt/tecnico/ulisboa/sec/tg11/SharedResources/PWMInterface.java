@@ -26,11 +26,11 @@ import java.rmi.Remote;
 
 public interface PWMInterface extends Remote{
 	
-	UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException;
+	byte[] register(Key publicKey) throws RemoteException, UserAlreadyExistsException;
 	
-	BigInteger requestNonce(UUID userID) throws RemoteException;
+	byte[] requestNonce(UUID userID) throws RemoteException;
 	
-    void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException,InvalidSignatureException, WrongUserIDException;
+    byte[] put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException,InvalidSignatureException, WrongUserIDException;
     /* UUID userID, byte[] domain, byte[] username, byte[] password */
     
 

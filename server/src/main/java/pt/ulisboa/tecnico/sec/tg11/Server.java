@@ -49,6 +49,7 @@ public class Server implements PWMInterface {
     private static KeyStore _keystore;
     private static String _keystorepw;
     private PrivateKey _privateKey;
+    private PublicKey _publicKey;
 
 	private Map<UUID, Key> _userKeys = new ConcurrentHashMap<UUID, Key>();
 	private static Map<UUID, List<Login>> _userlogin = new ConcurrentHashMap<UUID, List<Login>>();
@@ -74,6 +75,7 @@ public class Server implements PWMInterface {
 
         _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
         _privateKey = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
+        _publicKey = _keystore.getCertificate(KEY_NAME).getPublicKey();
     }
 
     public void setUp() throws RemoteException {
@@ -110,7 +112,7 @@ public class Server implements PWMInterface {
     }
 	
 
-    public void put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
+    public byte[] put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
             MessageManager manager = new MessageManager(msg);
@@ -130,6 +132,9 @@ public class Server implements PWMInterface {
             byte[] username = manager.getContent("username");
             byte[] password = manager.getContent("password");
 
+            MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
+
+
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
 
@@ -138,14 +143,16 @@ public class Server implements PWMInterface {
                         if((Arrays.equals(l.getDomain(),domain)) && Arrays.equals(l.getUsername(),username)){
                             l.setPassword(password);
                             _userlogin.replace(userID, login_list);
-                            return;
+                            sendManager.putPlainTextContent("Status","ACK".getBytes());
+                            return sendManager.generateMessage();
                         }
                     }
                 }
                 List<Login> l = new ArrayList<Login>(login_list);
                 l.add(new Login(username, domain, password));
                 _userlogin.put(userID, l);
-                return;
+                sendManager.putPlainTextContent("Status","ACK".getBytes());
+                return sendManager.generateMessage();
 
             }
             else
@@ -167,7 +174,10 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
+        return null; //FIXME
     }
 
 
@@ -178,28 +188,33 @@ public class Server implements PWMInterface {
         * */
         try {
 
-        	MessageManager manager = new MessageManager(msg);
-        	UUID userID = manager.getUserID();
+        	MessageManager receiveManager = new MessageManager(msg);
+        	UUID userID = receiveManager.getUserID();
             Key clientKey = _userKeys.get(userID);
             
             if(clientKey == null)
             	throw new WrongUserIDException(userID);
             
-            manager.setPublicKey(clientKey);
-            manager.verifySignature();
-           
-            
-            this.verifyNounce(userID, manager.getNonce());
+            receiveManager.setPublicKey(clientKey);
+            receiveManager.verifySignature();
 
-            byte[] domain = manager.getContent("domain");
-            byte[] username = manager.getContent("username");
+            this.verifyNounce(userID, receiveManager.getNonce());
+
+            byte[] domain = receiveManager.getContent("domain");
+            byte[] username = receiveManager.getContent("username");
+
+
+            MessageManager sendManager = new MessageManager(this.generateNonce(),_privateKey,_publicKey);
+
+
             if(_userlogin.containsKey(userID)){
                 List<Login> login_list = _userlogin.get(userID);
                 if(!login_list.isEmpty()){
                 	
                     for (Login l: login_list) {
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
-                            return l.getPassword();
+                            sendManager.putPlainTextContent("Password",l.getPassword());
+                            return sendManager.generateMessage();
                         }
                     }
                 }
@@ -224,42 +239,100 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
         return new byte[0];
     }
 
-	public UUID register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
-		
-		UUID user = UUID.randomUUID();
+	public byte[] register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
 
-        for(UUID id : _userKeys.keySet())
-            if(_userKeys.get(id).equals(publicKey))
-                throw new UserAlreadyExistsException(publicKey);
+        try {
+            MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
-        _userKeys.put(user,publicKey);
-        List<Login> log = new ArrayList<Login>();
-        _userlogin.put(user, log);
+            UUID user = UUID.randomUUID();
 
-		return user;
-	}
+            for(UUID id : _userKeys.keySet())
+                if(_userKeys.get(id).equals(publicKey))
+                    throw new UserAlreadyExistsException(publicKey);
+
+            _userKeys.put(user,publicKey);
+            List<Login> log = new ArrayList<Login>();
+            _userlogin.put(user, log);
+
+            sendManager.putPlainTextContent("UUID",user.toString().getBytes());
+
+            return sendManager.generateMessage();
+
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null; //FIXME
+    }
 
 	public void shutdown() throws RemoteException, NotBoundException {
 	    reg.unbind(SERVER_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
 
-	public BigInteger requestNonce(UUID userID) throws RemoteException {
-		BigInteger nonce = new BigInteger(64, new SecureRandom());
-		List<BigInteger> list = _nonces.get(userID);
-		if(list == null){
-			list = new ArrayList<BigInteger>();
-			_nonces.put(userID, list);
-		}
-		
-		list.add(nonce);
-				
-		return nonce;
-	}
+	public byte[] requestNonce(UUID userID) throws RemoteException {
+        try {
+            MessageManager mm = new MessageManager(generateNonce(),_privateKey,_publicKey);
+
+            BigInteger nonce = generateNonce();
+            List<BigInteger> list = _nonces.get(userID);
+            if(list == null){
+                list = new ArrayList<BigInteger>();
+                _nonces.put(userID, list);
+            }
+
+            list.add(nonce);
+
+
+            mm.putPlainTextContent("Nonce",nonce.toByteArray());
+
+            return mm.generateMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+        return null; //FIXME
+    }
+
+	private BigInteger generateNonce(){
+        return new BigInteger(64, new SecureRandom());
+    }
 	
 	private void verifyNounce(UUID userID,BigInteger nonce) throws InvalidNonceException{
 		List<BigInteger> nonceList = _nonces.get(userID);

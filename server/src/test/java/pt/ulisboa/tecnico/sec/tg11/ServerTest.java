@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.tg11;
 
 import static org.junit.Assert.*;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,9 +30,16 @@ public class ServerTest extends AbstractTest{
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		_userID = _serverRemote.register(keypair.getPublic());
-		_nonce = _serverRemote.requestNonce(_userID);
 
+		byte[] msg = _serverRemote.register(keypair.getPublic());
+		MessageManager mm = verifyMessage(msg);
+
+
+		_userID = UUID.fromString(new String(mm.getContent("UUID")));
+		byte[] result =  _serverRemote.requestNonce(_userID);
+
+		mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
 
 	}
 
@@ -46,7 +54,11 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] msg = _serverRemote.put(manager.generateMessage());
+
+		MessageManager receiveManager = verifyMessage(msg);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
 	}
 
 
@@ -61,14 +73,25 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] msg = _serverRemote.put(manager.generateMessage());
 
-		_nonce = _serverRemote.requestNonce(_userID);
+		MessageManager receiveManager = verifyMessage(msg);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		receiveManager = verifyMessage(result);
+		_nonce = new BigInteger(receiveManager.getContent("Nonce"));
+
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password2.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] newPut = _serverRemote.put(manager.generateMessage());
+
+		receiveManager = verifyMessage(newPut);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
 	}
 
 	@Test
@@ -82,15 +105,24 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] msg = _serverRemote.put(manager.generateMessage());
+
+		MessageManager receiveManager = verifyMessage(msg);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
 
 
-		_nonce = _serverRemote.requestNonce(_userID);
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		MessageManager mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username2.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] newPut = _serverRemote.put(manager.generateMessage());
+
+		receiveManager = verifyMessage(newPut);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
 	}
 
 
@@ -116,14 +148,24 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
-		_serverRemote.put(manager.generateMessage());
+		byte[] putResult = _serverRemote.put(manager.generateMessage());
 
-		_nonce = _serverRemote.requestNonce(_userID);
+		MessageManager receiveManager = verifyMessage(putResult);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		MessageManager mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
-		byte[] result =_serverRemote.get(manager.generateMessage());
-		byte[] retrieved = manager.getDecypheredMessage(result);
+		byte[] passResult =_serverRemote.get(manager.generateMessage());
+		receiveManager = verifyMessage(passResult);
+
+
+		byte[] retrieved = manager.getDecypheredMessage(receiveManager.getContent("Password"));
 		assertArrayEquals(password.getBytes(),retrieved);
 	}
 
@@ -141,30 +183,49 @@ public class ServerTest extends AbstractTest{
 		_serverRemote.put(manager.generateMessage());
 
 
-		_nonce = _serverRemote.requestNonce(_userID);
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		MessageManager mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
-		byte[] result =_serverRemote.get(manager.generateMessage());
-		byte[] retrieved = manager.getDecypheredMessage(result);
+		byte[] result2 =_serverRemote.get(manager.generateMessage());
+		//FIXME
+		MessageManager received = verifyMessage(result2);
+		byte[] retrieved = manager.getDecypheredMessage(received.getContent("Password"));
 
 
 
 		assertArrayEquals(password.getBytes(),retrieved);
 
-		_nonce = _serverRemote.requestNonce(_userID);
+
+		byte[] result3 =  _serverRemote.requestNonce(_userID);
+		MessageManager manager1 = verifyMessage(result3);
+		_nonce = new BigInteger(manager1.getContent("Nonce"));
+
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password2.getBytes());
 		_serverRemote.put(manager.generateMessage());
 
-		_nonce = _serverRemote.requestNonce(_userID);
+
+		byte[] result4 =  _serverRemote.requestNonce(_userID);
+		MessageManager manager2 = verifyMessage(result4);
+		_nonce = new BigInteger(manager2.getContent("Nonce"));
+
+
+
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
-		result = _serverRemote.get(manager.generateMessage());
-		retrieved = manager.getDecypheredMessage(result);
+		result4 = _serverRemote.get(manager.generateMessage());
+		mm = verifyMessage(result4);
+		retrieved = manager.getDecypheredMessage(mm.getContent("Password"));
 		assertArrayEquals(password2.getBytes(),retrieved);
 	}
 
@@ -199,5 +260,12 @@ public class ServerTest extends AbstractTest{
 		msg[index]='U';
 
 		_serverRemote.put(msg);
+	}
+
+	private MessageManager verifyMessage(byte[] msg) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
+		MessageManager mm = new MessageManager(msg);
+		mm.setPublicKey(_serverPublicKey);
+		mm.verifySignature();
+		return mm;
 	}
 }
