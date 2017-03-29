@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by trosado on 01/03/17.
@@ -49,8 +50,8 @@ public class Server implements PWMInterface {
     private static String _keystorepw;
     private PrivateKey _privateKey;
 
-	private Map<UUID, Key> _userKeys = new HashMap<UUID,Key>();
-	private static Map<UUID, List<Login>> _userlogin = new HashMap<UUID, List<Login>>();
+	private Map<UUID, Key> _userKeys = new ConcurrentHashMap<UUID, Key>();
+	private static Map<UUID, List<Login>> _userlogin = new ConcurrentHashMap<UUID, List<Login>>();
 	private Map<UUID,List<BigInteger>> _nonces;
 
     private Registry reg;
