@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Created by trosado on 01/03/17.
@@ -58,6 +61,10 @@ public class Server implements PWMInterface {
     private Registry reg;
     private int port;
 
+    Logger logger = Logger.getLogger("ServerLog");
+    FileHandler fh;
+
+
     public Server() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         this(1099);
     }
@@ -76,17 +83,23 @@ public class Server implements PWMInterface {
         _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
         _privateKey = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
         _publicKey = _keystore.getCertificate(KEY_NAME).getPublicKey();
+
+
+        fh = new FileHandler("./Server.log");
+        logger.addHandler(fh);
+        SimpleFormatter formatter = new SimpleFormatter();
+        fh.setFormatter(formatter);
     }
 
     public void setUp() throws RemoteException {
 
-        System.out.println("Waiting...");
 
+        logger.info("Server ready");
         try {
             reg.rebind(SERVER_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {
-            System.out.println("ERROR: Failed to register the server object.");
-            e.printStackTrace();
+            logger.info("ERROR: Failed to register the server object.");
+           // e.printStackTrace();
         }
 
     }
@@ -144,6 +157,7 @@ public class Server implements PWMInterface {
                             l.setPassword(password);
                             _userlogin.replace(userID, login_list);
                             sendManager.putPlainTextContent("Status","ACK".getBytes());
+                            logger.info(userID+" - put action");
                             return sendManager.generateMessage();
                         }
                     }
@@ -152,6 +166,7 @@ public class Server implements PWMInterface {
                 l.add(new Login(username, domain, password));
                 _userlogin.put(userID, l);
                 sendManager.putPlainTextContent("Status","ACK".getBytes());
+                logger.info(userID+" - put action");
                 return sendManager.generateMessage();
 
             }
@@ -214,6 +229,7 @@ public class Server implements PWMInterface {
                     for (Login l: login_list) {
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
                             sendManager.putPlainTextContent("Password",l.getPassword());
+                            logger.info(userID+" - get action");
                             return sendManager.generateMessage();
                         }
                     }
@@ -261,7 +277,7 @@ public class Server implements PWMInterface {
             _userlogin.put(user, log);
 
             sendManager.putPlainTextContent("UUID",user.toString().getBytes());
-
+            logger.info("User "+user.toString()+" created.");
             return sendManager.generateMessage();
 
         } catch (BadPaddingException e) {
@@ -306,7 +322,7 @@ public class Server implements PWMInterface {
 
 
             mm.putPlainTextContent("Nonce",nonce.toByteArray());
-
+            //logger.info(userID+" - requested nounce"); //FIXME is it needed?
             return mm.generateMessage();
         } catch (IOException e) {
             e.printStackTrace();

@@ -91,8 +91,11 @@ public class PwmLib {
         content.putHashedContent("username",username);
         content.putCipheredContent("password",password);
 
-        _server.put(content.generateMessage());
-        //FIXME Verify ACK
+        result = _server.put(content.generateMessage());
+        MessageManager mm = verifySignature(result);
+        if(!mm.getContent("Status").equals("ACK")){
+
+        }
     }
 
 
