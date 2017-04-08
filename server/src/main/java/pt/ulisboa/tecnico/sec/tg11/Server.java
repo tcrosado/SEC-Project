@@ -1,15 +1,12 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 
 
-import pt.ulisboa.tecnico.sec.tg11.Login;
+import org.apache.log4j.Logger;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
@@ -18,10 +15,7 @@ import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -30,21 +24,20 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+;
 
 /**
  * Created by trosado on 01/03/17.
  *
  */
 public class Server implements PWMInterface {
+
+    static Logger logger = Logger.getLogger(Server.class.getName());
 	
 	private final String SERVER_NAME = "PWMServer";
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
@@ -60,9 +53,6 @@ public class Server implements PWMInterface {
 
     private Registry reg;
     private int port;
-
-    Logger logger = Logger.getLogger("ServerLog");
-    FileHandler fh;
 
 
     public Server() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
@@ -84,11 +74,6 @@ public class Server implements PWMInterface {
         _privateKey = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
         _publicKey = _keystore.getCertificate(KEY_NAME).getPublicKey();
 
-
-        fh = new FileHandler("./Server.log");
-        logger.addHandler(fh);
-        SimpleFormatter formatter = new SimpleFormatter();
-        fh.setFormatter(formatter);
     }
 
     public void setUp() throws RemoteException {
@@ -98,7 +83,7 @@ public class Server implements PWMInterface {
         try {
             reg.rebind(SERVER_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {
-            logger.info("ERROR: Failed to register the server object.");
+            logger.error("ERROR: Failed to register the server object.");
            // e.printStackTrace();
         }
 
@@ -157,7 +142,7 @@ public class Server implements PWMInterface {
                             l.setPassword(password);
                             _userlogin.replace(userID, login_list);
                             sendManager.putPlainTextContent("Status","ACK".getBytes());
-                            logger.info(userID+" - put action");
+                            logger.debug(userID+" - put action");
                             return sendManager.generateMessage();
                         }
                     }
@@ -166,7 +151,7 @@ public class Server implements PWMInterface {
                 l.add(new Login(username, domain, password));
                 _userlogin.put(userID, l);
                 sendManager.putPlainTextContent("Status","ACK".getBytes());
-                logger.info(userID+" - put action");
+                logger.debug(userID+" - put action");
                 return sendManager.generateMessage();
 
             }
@@ -229,7 +214,7 @@ public class Server implements PWMInterface {
                     for (Login l: login_list) {
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
                             sendManager.putPlainTextContent("Password",l.getPassword());
-                            logger.info(userID+" - get action");
+                            logger.debug(userID+" - get action");
                             return sendManager.generateMessage();
                         }
                     }
@@ -275,9 +260,8 @@ public class Server implements PWMInterface {
             _userKeys.put(user,publicKey);
             List<Login> log = new ArrayList<Login>();
             _userlogin.put(user, log);
-
+            logger.debug("User: "+user+" created.");
             sendManager.putPlainTextContent("UUID",user.toString().getBytes());
-            logger.info("User "+user.toString()+" created.");
             return sendManager.generateMessage();
 
         } catch (BadPaddingException e) {
