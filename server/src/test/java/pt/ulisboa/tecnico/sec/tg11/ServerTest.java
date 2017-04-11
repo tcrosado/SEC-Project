@@ -260,6 +260,25 @@ public class ServerTest extends AbstractTest{
 
 		_serverRemote.put(msg);
 	}
+	
+	@Test(expected = InvalidSignatureException.class)
+	public void invalidVerification() throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, IOException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
+		String domain = "www.google.pt";
+		String username = "testUser";
+		String password = "testPass";
+		String password2 = "pass";
+
+		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
+		manager.putHashedContent("domain",domain.getBytes());
+		manager.putHashedContent("username",username.getBytes());
+		manager.putCipheredContent("password",password.getBytes());
+		byte[] msg = _serverRemote.put(manager.generateMessage());
+		
+		MessageManager fakeServer = new MessageManager(msg);
+		fakeServer.setPublicKey(_fakePublicKey);
+		fakeServer.verifySignature();
+		
+	}
 
 	private MessageManager verifyMessage(byte[] msg) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
 		MessageManager mm = new MessageManager(msg);

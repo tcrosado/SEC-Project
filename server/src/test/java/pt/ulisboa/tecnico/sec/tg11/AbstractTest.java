@@ -17,10 +17,13 @@ import java.security.cert.X509Certificate;
 
 public abstract class AbstractTest {
 		private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
+		private static final String PATH_TO_FAKE_CERT = "./src/main/resources/server2.cer";
 		PWMInterface _serverRemote;
 		KeyPair keypair;
 		Server serverObject;
 		PublicKey _serverPublicKey;
+		PublicKey _fakePublicKey;
+		
 	@Before
 	public void setUp() throws Exception {
 		serverObject = new Server();
@@ -30,8 +33,14 @@ public abstract class AbstractTest {
 		FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
 		CertificateFactory f = CertificateFactory.getInstance("X.509");
 		X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
+		
+		fin = new FileInputStream(PATH_TO_FAKE_CERT);
+		f = CertificateFactory.getInstance("X.509");
+		X509Certificate fakeCert = (X509Certificate)f.generateCertificate(fin);
 
 		_serverPublicKey = certificate.getPublicKey();
+		_fakePublicKey = fakeCert.getPublicKey();
+		
 
 		String text = "RMI Test Message";
 
