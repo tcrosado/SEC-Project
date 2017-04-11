@@ -92,7 +92,7 @@ public class PwmLib {
         content.putCipheredContent("password",password);
 
         result = _server.put(content.generateMessage());
-        MessageManager mm = verifySignature(result);
+        mm = verifySignature(result);
         if(!mm.getContent("Status").equals("ACK")){
 
         }

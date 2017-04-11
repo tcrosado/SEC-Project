@@ -183,7 +183,7 @@ public class Server implements PWMInterface {
 
     public byte[] get(byte[] msg) throws RemoteException, InvalidSignatureException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException {
     	/*UUID userID, byte[] domain, byte[] username*/
-      
+
         try {
 
         	MessageManager receiveManager = new MessageManager(msg);
