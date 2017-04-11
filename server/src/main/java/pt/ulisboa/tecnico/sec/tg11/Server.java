@@ -183,9 +183,7 @@ public class Server implements PWMInterface {
 
     public byte[] get(byte[] msg) throws RemoteException, InvalidSignatureException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException {
     	/*UUID userID, byte[] domain, byte[] username*/
-        /*TODO
-        *  - Server returning messages through the MessageManager
-        * */
+      
         try {
 
         	MessageManager receiveManager = new MessageManager(msg);
@@ -306,7 +304,6 @@ public class Server implements PWMInterface {
 
 
             mm.putPlainTextContent("Nonce",nonce.toByteArray());
-            //logger.info(userID+" - requested nounce"); //FIXME is it needed?
             return mm.generateMessage();
         } catch (IOException e) {
             e.printStackTrace();
