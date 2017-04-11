@@ -98,10 +98,14 @@ public class MessageManager {
 		_msg.addContent(key, this.rsaCipherValue(value, this._srcPublicKey));
 	}
 	
-	public void putHashedContent(String key, byte[] value) throws NoSuchAlgorithmException{
+	public void putHashedContent(String key, byte[] value) throws NoSuchAlgorithmException, IOException {
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
-		byte[] digest = md.digest(value);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		out.write(value);
+		out.write(_msg.getUserID().toString().getBytes());
+
+		byte[] digest = md.digest(out.toByteArray());
 		
 		_msg.addContent(key, digest);
 	}
