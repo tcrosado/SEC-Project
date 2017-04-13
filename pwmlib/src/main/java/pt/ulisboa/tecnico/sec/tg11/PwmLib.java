@@ -21,10 +21,9 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
+import java.sql.*;
+import java.util.*;
+import java.sql.Timestamp;
 
 /**
  * Created by trosado on 01/03/17.
@@ -141,31 +140,45 @@ public class PwmLib {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
-        byte[] firstPassword = null;
+
+        HashMap<Timestamp, byte[]> passwords = new HashMap<Timestamp, byte[]>();
+        Timestamp latestTS = null;
+
         for(String serverName: _serverList.keySet()) {
             PWMInterface server = _serverList.get(serverName);
+
+            //get nounce
             byte[] result = server.requestNonce(userID);
-            MessageManager mm = verifySignature(serverName,result);
+            MessageManager mm = verifySignature(serverName, result);
             BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
-            MessageManager content = new MessageManager(nonce,userID, _privateKey,this._publicKey);
+
+            //generate and send get message
+            MessageManager content = new MessageManager(nonce, userID, _privateKey, this._publicKey);
             content.putHashedContent("domain", domain);
             content.putHashedContent("username", username);
             byte[] passMsg = server.get(content.generateMessage());
-            MessageManager receiveManager = verifySignature(serverName,passMsg);
+            MessageManager receiveManager = verifySignature(serverName, passMsg);
 
-            if(firstPassword != null){
-                byte[] receivedPassword = receiveManager.getContent("Password");
-                if(!Arrays.equals(firstPassword,receivedPassword)){
-                    System.out.print("Abort");
-                    return new byte[0];
-                }
-            }
-            else
-                firstPassword = receiveManager.getContent("Password");
+            passwords.put(receiveManager.getTimestamp(), receiveManager.getContent("Password"));
+            latestTS = receiveManager.getTimestamp();
         }
 
-        return firstPassword;
+        if (passwords.size() < REPLICAS/2){
+            //FIXME -> nao deu passwords suficientes
+            System.out.println("abort");
+            return null;
+        }
 
+        else {
+            for (Timestamp ts : passwords.keySet()) {
+                if (ts.after(latestTS)){
+                    //obter timestamp mais recente
+                    latestTS  = ts;
+                }
+            }
+        }
+
+        return passwords.get(latestTS);
     }
 
     public void close(){

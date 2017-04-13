@@ -189,6 +189,7 @@ public class Server implements PWMInterface {
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
+
         return null; //FIXME
     }
 
