@@ -253,8 +253,8 @@ public class Server implements PWMInterface {
         try {
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
-            UUID user = UUID.randomUUID();
-
+            UUID user = generateUUID(publicKey.getEncoded());
+            logger.debug("generated -"+user.toString());
             for(UUID id : _userKeys.keySet())
                 if(_userKeys.get(id).equals(publicKey))
                     throw new UserAlreadyExistsException(publicKey);
@@ -329,6 +329,11 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         }
         return null; //FIXME
+    }
+
+
+    private UUID generateUUID(byte[] bytes){
+        return UUID.nameUUIDFromBytes(bytes);
     }
 
 	private BigInteger generateNonce(){
