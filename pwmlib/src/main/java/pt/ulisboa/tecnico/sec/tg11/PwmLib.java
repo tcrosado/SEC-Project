@@ -143,6 +143,7 @@ public class PwmLib {
 
         HashMap<Timestamp, byte[]> passwords = new HashMap<Timestamp, byte[]>();
         Timestamp latestTS = null;
+        MessageManager receiveManager = null;
 
         for(String serverName: _serverList.keySet()) {
             PWMInterface server = _serverList.get(serverName);
@@ -157,7 +158,7 @@ public class PwmLib {
             content.putHashedContent("domain", domain);
             content.putHashedContent("username", username);
             byte[] passMsg = server.get(content.generateMessage());
-            MessageManager receiveManager = verifySignature(serverName, passMsg);
+            receiveManager = verifySignature(serverName, passMsg);
 
             passwords.put(receiveManager.getTimestamp(), receiveManager.getContent("Password"));
             latestTS = receiveManager.getTimestamp();
@@ -178,7 +179,12 @@ public class PwmLib {
             }
         }
 
-        return passwords.get(latestTS);
+
+        //ATOMICITY added -> update latest password to all the other nodes
+        byte[] latestPassword = passwords.get(latestTS);
+        save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPassword);
+
+        return latestPassword;
     }
 
     public void close(){
