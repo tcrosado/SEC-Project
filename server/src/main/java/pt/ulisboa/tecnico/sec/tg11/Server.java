@@ -55,7 +55,7 @@ public class Server implements PWMInterface {
 
 
     public Server(int id) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
-        this(1099, id);
+        this(1099+id, id);
     }
 
     public Server(int port, int id) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
