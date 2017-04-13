@@ -45,7 +45,7 @@ public abstract class AbstractTest {
 		String text = "RMI Test Message";
 
 		try {
-			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
+			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099+1);
 			_serverRemote = (PWMInterface) registry.lookup("PWMServer1");
 		} catch (Exception e) {
 			e.printStackTrace();

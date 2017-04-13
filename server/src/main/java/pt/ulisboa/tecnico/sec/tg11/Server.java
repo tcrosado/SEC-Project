@@ -70,7 +70,7 @@ public class Server implements PWMInterface {
     public void setUp() throws RemoteException {
 
 
-        logger.info("Server ready");
+        logger.info("Server "+SERVER_REGISTRY_NAME+" ready");
         try {
             reg.rebind(SERVER_REGISTRY_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {

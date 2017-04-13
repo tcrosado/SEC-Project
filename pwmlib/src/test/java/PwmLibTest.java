@@ -30,7 +30,7 @@ import java.util.UUID;
  */
 public class PwmLibTest {
 
-    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
+    private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server1.cer";
     private static final String PATH_TO_RSAKEYSTORE = "./src/main/resources/keystore.jks";
     private static final String PATH_TO_RSAKEYSTORE2 = "./src/main/resources/user2.jks";
     private static final String CLIENT_PUBLIC_KEY = "privatekey";
@@ -87,7 +87,7 @@ public class PwmLibTest {
        
     }
     
-    /*
+
     @AfterClass
     public static void tearDown() throws Exception {
         _pwmlib.close();
@@ -193,5 +193,5 @@ public class PwmLibTest {
         mm.verifySignature();
         return mm;
     }
-    */
+
 }
