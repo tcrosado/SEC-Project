@@ -16,7 +16,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public abstract class AbstractTest {
-		private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server.cer";
+		private static final String PATH_TO_SERVER_CERT = "./src/main/resources/server1.cer";
 		private static final String PATH_TO_FAKE_CERT = "./src/main/resources/server2.cer";
 		PWMInterface _serverRemote;
 		KeyPair keypair;
@@ -26,7 +26,7 @@ public abstract class AbstractTest {
 		
 	@Before
 	public void setUp() throws Exception {
-		serverObject = new Server();
+		serverObject = new Server(1);
 		serverObject.setUp();
 
 
@@ -46,7 +46,7 @@ public abstract class AbstractTest {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-			_serverRemote = (PWMInterface) registry.lookup("PWMServer");
+			_serverRemote = (PWMInterface) registry.lookup("PWMServer1");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

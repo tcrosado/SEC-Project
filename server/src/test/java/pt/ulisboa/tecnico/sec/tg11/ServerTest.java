@@ -43,7 +43,7 @@ public class ServerTest extends AbstractTest{
 
 	}
 
-
+	
 	@Test
 	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		String domain = "www.google.pt";
@@ -286,4 +286,5 @@ public class ServerTest extends AbstractTest{
 		mm.verifySignature();
 		return mm;
 	}
+	
 }

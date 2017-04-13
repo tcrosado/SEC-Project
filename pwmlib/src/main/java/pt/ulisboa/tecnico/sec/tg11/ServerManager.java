@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.sec.tg11;
+ package pt.ulisboa.tecnico.sec.tg11;
 
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;

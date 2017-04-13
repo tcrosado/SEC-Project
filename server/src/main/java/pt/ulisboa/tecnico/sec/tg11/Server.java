@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.rmi.NotBoundException;
@@ -39,10 +40,8 @@ public class Server implements PWMInterface {
 
     static Logger logger = Logger.getLogger(Server.class.getName());
 	
-	private final String SERVER_NAME = "PWMServer";
-    private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
+	private String SERVER_REGISTRY_NAME = null;
     private final String KEY_NAME = "privatekey";
-    private static KeyStore _keystore;
     private static String _keystorepw;
     private PrivateKey _privateKey;
     private PublicKey _publicKey;
@@ -55,24 +54,16 @@ public class Server implements PWMInterface {
     private int port;
 
 
-    public Server() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
-        this(1099);
+    public Server(int id) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        this(1099, id);
     }
 
-    public Server(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public Server(int port, int id) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         this.port = port;
         _nonces = new HashMap<UUID,List<BigInteger>>();
         reg = LocateRegistry.createRegistry(this.port);
 
-        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "1234567";
-
-        // get user password and file input stream
-        char[] password = _keystorepw.toCharArray();
-
-        _keystore.load(new FileInputStream(PATH_TO_KEYSTORE), password);
-        _privateKey = (PrivateKey) _keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
-        _publicKey = _keystore.getCertificate(KEY_NAME).getPublicKey();
+       setServerKeys(id);
 
     }
 
@@ -81,7 +72,7 @@ public class Server implements PWMInterface {
 
         logger.info("Server ready");
         try {
-            reg.rebind(SERVER_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
+            reg.rebind(SERVER_REGISTRY_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {
             logger.error("ERROR: Failed to register the server object.");
            // e.printStackTrace();
@@ -93,8 +84,21 @@ public class Server implements PWMInterface {
     public static void main(String [] args) throws UnrecoverableKeyException{
         Server server;
         try {
-            server = new Server();
-            server.setUp();
+        	
+        	
+        	if(args.length == 1){
+            	server = new Server(Integer.parseInt(args[0]));
+            	server.setUp();
+        	}
+        	else if(args.length ==2 ){
+        		server = new Server(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        		server.setUp();
+        	}	
+        	else{
+        		System.out.println("Wrong input arguments");
+        		System.exit(0);;
+        	}
+        	
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (CertificateException e) {
@@ -285,7 +289,7 @@ public class Server implements PWMInterface {
     }
 
 	public void shutdown() throws RemoteException, NotBoundException {
-	    reg.unbind(SERVER_NAME);
+	    reg.unbind(SERVER_REGISTRY_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
 
@@ -343,6 +347,23 @@ public class Server implements PWMInterface {
 		else
 			throw new InvalidNonceException(nonce);
 		
+	}
+	
+	public void setServerKeys(int id) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException{
+		
+		KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        _keystorepw = "1234567";
+
+        // get user password and file input stream
+        char[] password = _keystorepw.toCharArray();
+        
+        String path_to_keystore = "./src/main/resources/keystore" + id + ".jks";
+
+        keystore.load(new FileInputStream(path_to_keystore), password);
+        _privateKey = (PrivateKey) keystore.getKey(KEY_NAME,_keystorepw.toCharArray());
+        _publicKey = keystore.getCertificate(KEY_NAME).getPublicKey();
+        SERVER_REGISTRY_NAME = "PWMServer"+id;
+        
 	}
 
 }
