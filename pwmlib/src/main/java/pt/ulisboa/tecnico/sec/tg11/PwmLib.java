@@ -102,23 +102,38 @@ public class PwmLib {
         /*Specification: stores the triple (domain, username, password) on the _serverManager. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _serverManager, or to an update otherwise.
         */
+        int acks = 0;
+
         for(String serverName: _serverList.keySet()) {
             PWMInterface server = _serverList.get(serverName);
+
+            //get nounce
             byte[] result = server.requestNonce(userID);
             MessageManager mm = verifySignature(serverName,result);
             BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
+
+            //generate and send put message
             MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
             content.putHashedContent("domain",domain);
             content.putHashedContent("username",username);
             content.putCipheredContent("password",password);
             result = server.put(content.generateMessage());
+
+            //verify signature of response
             mm = verifySignature(serverName,result);
 
             if(!mm.getContent("Status").equals("ACK")){
-                //FIXME fazer reverse
+                //FIXME fazer reverse -> nao deu ACK
 
             }
+            ++acks;
         }
+
+        if(acks < REPLICAS/2){
+            //FIXME fazer reverse -> nao deu ACKs suficientes
+
+        }
+
     }
 
 

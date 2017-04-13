@@ -23,6 +23,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.sql.Timestamp;
 ;
 
 /**
@@ -133,6 +135,7 @@ public class Server implements PWMInterface {
             byte[] domain = manager.getContent("domain");
             byte[] username = manager.getContent("username");
             byte[] password = manager.getContent("password");
+            Timestamp messageTs = manager.getTimestamp();
 
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
@@ -143,16 +146,21 @@ public class Server implements PWMInterface {
                 if(!login_list.isEmpty()){
                     for (Login l: login_list) {
                         if((Arrays.equals(l.getDomain(),domain)) && Arrays.equals(l.getUsername(),username)){
-                            l.setPassword(password);
-                            _userlogin.replace(userID, login_list);
-                            sendManager.putPlainTextContent("Status","ACK".getBytes());
-                            logger.debug(userID+" - put action");
-                            return sendManager.generateMessage();
+
+                            if(messageTs.after(l.getTimestamp())) {
+                            //Check if messagetimestamp > latest logintimestamp
+
+                                l.setPassword(password);
+                                _userlogin.replace(userID, login_list);
+                                sendManager.putPlainTextContent("Status", "ACK".getBytes());
+                                logger.debug(userID + " - put action");
+                                return sendManager.generateMessage();
+                            }
                         }
                     }
                 }
                 List<Login> l = new ArrayList<Login>(login_list);
-                l.add(new Login(username, domain, password));
+                l.add(new Login(username, domain, password, messageTs));
                 _userlogin.put(userID, l);
                 sendManager.putPlainTextContent("Status","ACK".getBytes());
                 logger.debug(userID+" - put action");

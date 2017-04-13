@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class MessageManager {
 	private Message _msg;
 	private Key _srcPrivateKey;
 	private Key _srcPublicKey;
-
+	private Timestamp _ts;
 
 	//RECEIVES MESSAGE
 	public MessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
@@ -37,6 +38,9 @@ public class MessageManager {
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
+
+        //FIXME POSSIBLE ERROR
+        _ts = (Timestamp) obj.readObject();
 	}
 	
 	//SERVER SEND MESSAGE
@@ -44,6 +48,7 @@ public class MessageManager {
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
 		_msg = new Message(nonce);
+		_ts = new Timestamp(System.currentTimeMillis());
 	}
 	
 	//CLIENT SEND MESSAGE
@@ -51,7 +56,7 @@ public class MessageManager {
 		_srcPrivateKey = srcPrivateKey;
 		_srcPublicKey = srcPublicKey;
 		_msg = new Message(userid,nonce);
-
+        _ts = new Timestamp(System.currentTimeMillis());
 	}
 
 	private byte[] rsaCipherValue(byte[] value, Key key) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException{
@@ -79,6 +84,10 @@ public class MessageManager {
 		ByteArrayOutputStream b  = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
+
+        //FIXME POSSIBLE ERROR
+        obj.writeObject(_ts);
+
 		obj.flush();
 		obj.close();
 		return b.toByteArray();
@@ -118,6 +127,8 @@ public class MessageManager {
 		return _msg.getUserID();
 	}
 
+    public Timestamp getTimestamp(){return _ts;}
+
 	private byte[] serializeContent() throws IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException, InvalidKeyException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream obj = new ObjectOutputStream(b);
@@ -125,6 +136,10 @@ public class MessageManager {
 		obj.writeObject(_msg.getNonce());
 		obj.writeObject(_msg.getTimestamp());
 		obj.writeObject(_msg.getUserID());
+
+        //FIXME POSSIBLE ERROR
+        obj.writeObject(_ts);
+
 		obj.flush();
 		obj.close();
 		return b.toByteArray();
