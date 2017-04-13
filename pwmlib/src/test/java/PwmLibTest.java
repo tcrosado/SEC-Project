@@ -86,7 +86,8 @@ public class PwmLibTest {
         _server = (PWMInterface) registry.lookup("PWMServer");
        
     }
-
+    
+    /*
     @AfterClass
     public static void tearDown() throws Exception {
         _pwmlib.close();
@@ -192,4 +193,5 @@ public class PwmLibTest {
         mm.verifySignature();
         return mm;
     }
+    */
 }
