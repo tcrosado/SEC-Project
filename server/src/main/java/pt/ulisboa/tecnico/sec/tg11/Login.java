@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
-import com.sun.tools.corba.se.idl.constExpr.Times;
 
 import java.sql.Time;
 import java.sql.Timestamp;
