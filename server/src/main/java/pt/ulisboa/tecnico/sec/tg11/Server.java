@@ -72,7 +72,7 @@ public class Server implements PWMInterface {
     public void setUp() throws RemoteException {
 
 
-        logger.info("Server "+SERVER_REGISTRY_NAME+" ready");
+        logger.info("Server "+SERVER_REGISTRY_NAME+" ready on port "+port);
         try {
             reg.rebind(SERVER_REGISTRY_NAME, (PWMInterface) UnicastRemoteObject.exportObject((PWMInterface) this, this.port));
         } catch (Exception e) {
@@ -150,6 +150,8 @@ public class Server implements PWMInterface {
                             if(messageTs.after(l.getTimestamp())) {
                             //Check if messagetimestamp > latest logintimestamp
 
+                                System.out.println("Updated password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
+
                                 l.setPassword(password);
                                 _userlogin.replace(userID, login_list);
                                 sendManager.putPlainTextContent("Status", "ACK".getBytes());
@@ -160,6 +162,7 @@ public class Server implements PWMInterface {
                     }
                 }
                 List<Login> l = new ArrayList<Login>(login_list);
+                System.out.println("Added password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
                 l.add(new Login(username, domain, password, messageTs));
                 _userlogin.put(userID, l);
                 sendManager.putPlainTextContent("Status","ACK".getBytes());
@@ -224,6 +227,8 @@ public class Server implements PWMInterface {
                 	
                     for (Login l: login_list) {
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
+                            System.out.println("Gotten password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
+
                             sendManager.putPlainTextContent("Password",l.getPassword());
                             logger.debug(userID+" - get action");
                             return sendManager.generateMessage();
