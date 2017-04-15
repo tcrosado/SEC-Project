@@ -141,8 +141,10 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
 
-        HashMap<Timestamp, byte[]> passwords = new HashMap<Timestamp, byte[]>();
+        int answers = 0;
         Timestamp latestTS = null;
+        Timestamp actualTS = null;
+        byte[] latestPW = null;
         MessageManager receiveManager = null;
 
         for(String serverName: _serverList.keySet()) {
@@ -160,31 +162,25 @@ public class PwmLib {
             byte[] passMsg = server.get(content.generateMessage());
             receiveManager = verifySignature(serverName, passMsg);
 
-            passwords.put(receiveManager.getTimestamp(), receiveManager.getContent("Password"));
-            latestTS = receiveManager.getTimestamp();
+            actualTS = receiveManager.getTimestamp();
+
+            if (latestTS == null || actualTS.after(latestTS)) {
+                ++answers;
+                latestTS = actualTS;
+                latestPW = receiveManager.getContent("Password");
+            }
         }
 
-        if (passwords.size() < REPLICAS/2){
+        if (answers < REPLICAS/2){
             //FIXME -> nao deu passwords suficientes
             System.out.println("abort");
             return null;
         }
 
-        else {
-            for (Timestamp ts : passwords.keySet()) {
-                if (ts.after(latestTS)){
-                    //obter timestamp mais recente
-                    latestTS  = ts;
-                }
-            }
-        }
-
-
         //ATOMICITY added -> update latest password to all the other nodes
-        byte[] latestPassword = passwords.get(latestTS);
-        save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPassword);
+        save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPW);
 
-        return latestPassword;
+        return latestPW;
     }
 
     public void close(){
