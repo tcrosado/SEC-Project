@@ -81,11 +81,12 @@ public class PwmLib {
         UUID firstUID = null;
         for(String serverName: _serverList.keySet()){
             PWMInterface server = _serverList.get(serverName);
+            System.out.println(serverName+"-"+server.toString());
             byte[] result = server.register(_publicKey);
             MessageManager receiveManager = verifySignature(serverName,result);
             UUID user  = UUID.fromString(new String(receiveManager.getContent("UUID")));
-            if(firstUID != null)
-                if(firstUID != user){
+            if(firstUID != null) //FIXME Rever
+                if(!firstUID.equals(user)){
                     System.out.println("abort");
                     return null;
                 }
