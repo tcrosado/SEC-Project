@@ -63,7 +63,7 @@ public class PwmLibTest {
         _pwmlib.init(_keystore,password);
         _userID = _pwmlib.register_user();
 
-        System.out.println("userid -> " + _userID.toString());
+//        System.out.println("userid -> " + _userID.toString());
 
         /*
         FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);

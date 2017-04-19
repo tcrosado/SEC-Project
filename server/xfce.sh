@@ -1,3 +1,4 @@
+#!/bin/bash
 mvn clean package 
 for N in {1..4}
 do

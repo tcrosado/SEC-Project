@@ -83,7 +83,7 @@ public class Server implements PWMInterface {
     }
     
 
-    public static void main(String [] args) throws UnrecoverableKeyException{
+    public static void main(String [] args) throws UnrecoverableKeyException, InterruptedException {
         Server server;
         try {
         	
@@ -112,7 +112,11 @@ public class Server implements PWMInterface {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        while (true);
+
+        Object lockObject=new Object();
+        synchronized(lockObject){
+            lockObject.wait();
+        }
     }
 	
 

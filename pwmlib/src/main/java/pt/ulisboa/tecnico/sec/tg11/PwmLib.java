@@ -42,7 +42,7 @@ public class PwmLib {
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
 
-    private AbstractMap<String,PWMInterface> _serverList = null;
+    private static AbstractMap<String,PWMInterface> _serverList = null;
     private AbstractMap<String,Key> _serverKey;
     
 
