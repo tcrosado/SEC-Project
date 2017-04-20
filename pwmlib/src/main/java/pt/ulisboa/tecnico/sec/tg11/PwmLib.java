@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -21,9 +22,12 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.sql.*;
+import java.sql.Time;
 import java.util.*;
 import java.sql.Timestamp;
+import java.util.concurrent.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Created by trosado on 01/03/17.
@@ -42,7 +46,7 @@ public class PwmLib {
     private PublicKey _publicKey;
     private PrivateKey _privateKey;
 
-    private static AbstractMap<String,PWMInterface> _serverList = null;
+    private static ConcurrentHashMap<String,Thread> _threadList = null;
     private AbstractMap<String,Key> _serverKey;
     
 
@@ -62,39 +66,90 @@ public class PwmLib {
         this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
         //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
 
-        this._serverList = new HashMap<String, PWMInterface>();
+        this._threadList = new ConcurrentHashMap<String, Thread>();
         this._serverKey = new HashMap<String, Key>();
 
 
         for(int i=1;i<=REPLICAS;i++){
-            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099+i);
             String serverName = "PWMServer"+i;
             _serverKey.put(serverName,getCertificate(i));
-            _serverList.put(serverName,(PWMInterface) registry.lookup(serverName));
         }
+
         
     }
 
-    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException {
+    private PWMInterface getServer(Integer i) {
+
+        try {
+            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099+i);
+            String serverName = "PWMServer"+i;
+         return (PWMInterface) registry.lookup(serverName);
+        } catch (ConnectException e){
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+
+    }
+
+    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException, InterruptedException {
         /*Specification: registers the user on the _serverManager, initializing the required data structures to
         securely store the passwords.*/
-        UUID firstUID = null;
-        for(String serverName: _serverList.keySet()){
-            PWMInterface server = _serverList.get(serverName);
-            System.out.println(serverName+"-"+server.toString());
-            byte[] result = server.register(_publicKey);
-            MessageManager receiveManager = verifySignature(serverName,result);
-            UUID user  = UUID.fromString(new String(receiveManager.getContent("UUID")));
-            if(firstUID != null) //FIXME Rever
-                if(!firstUID.equals(user)){
-                    System.out.println("abort");
-                    return null;
-                }
-                else
-                    firstUID = user;
+
+
+        ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
+        ExecutorCompletionService executor = new ExecutorCompletionService(pool);
+
+        for(int i=1;i<=REPLICAS;i++){
+            final Integer in = i;
+            final String serverName = "PWMServer"+i;
+
+        executor.submit(() -> {
+            AbstractMap<Timestamp,UUID> uuidHashMap = new HashMap<Timestamp,UUID>();
+            PWMInterface server = getServer(in);
+            if(server == null)
+                return uuidHashMap;
+            byte[] result = new byte[0];
+            MessageManager receiveManager = null;
+            try {
+                result = server.register(_publicKey);
+                receiveManager = verifySignature(serverName,result);
+            } catch (InvalidSignatureException e) {
+                e.printStackTrace();
+
+            } catch (UserAlreadyExistsException e) {
+                e.printStackTrace();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+            uuidHashMap.put(receiveManager.getTimestamp()
+                    ,UUID.fromString(new String(receiveManager.getContent("UUID"))));
+
+            return uuidHashMap;
+        });
+
         }
 
-        return firstUID;
+        TreeMap<Timestamp,UUID> tree = new TreeMap<>();
+
+        int neededAnswers = (REPLICAS/2)+1;
+        for(int i=0;i<neededAnswers;i++){
+                Future<AbstractMap> result = executor.take();
+            try {
+                AbstractMap<Timestamp,UUID> temp = result.get();
+                for(Timestamp ts : temp.keySet())
+                    tree.put(ts,temp.get(ts));
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return tree.lastEntry().getValue();
 
     }
 
@@ -104,8 +159,8 @@ public class PwmLib {
         */
         int acks = 0;
 
-        for(String serverName: _serverList.keySet()) {
-            PWMInterface server = _serverList.get(serverName);
+       /* for(String serverName: _threadList.keySet()) {
+            PWMInterface server = _threadList.get(serverName);
 
             //get nounce
             byte[] result = server.requestNonce(userID);
@@ -132,7 +187,7 @@ public class PwmLib {
         if(acks < REPLICAS/2){
             //FIXME fazer reverse -> nao deu ACKs suficientes
 
-        }
+        }*/
 
     }
 
@@ -147,9 +202,9 @@ public class PwmLib {
         Timestamp actualTS = null;
         byte[] latestPW = null;
         MessageManager receiveManager = null;
-
-        for(String serverName: _serverList.keySet()) {
-            PWMInterface server = _serverList.get(serverName);
+/*
+        for(String serverName: _threadList.keySet()) {
+            PWMInterface server = _threadList.get(serverName);
 
             //get nounce
             byte[] result = server.requestNonce(userID);
@@ -180,7 +235,7 @@ public class PwmLib {
 
         //ATOMICITY added -> update latest password to all the other nodes
         save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPW);
-
+*/
         return latestPW;
     }
 
@@ -197,12 +252,48 @@ public class PwmLib {
         X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
         return certificate.getPublicKey();
     }
-    private MessageManager verifySignature(String serverName,byte[] msg) throws BadPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, SignatureException, InvalidKeyException, InvalidSignatureException, NoSuchPaddingException {
-        MessageManager mm = new MessageManager(msg);
+    private MessageManager verifySignature(String serverName,byte[] msg) throws InvalidSignatureException {
+        MessageManager mm = null;
+        try {
+            mm = new MessageManager(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (InvalidSignatureException e) {
+            e.printStackTrace();
+        }
         mm.setPublicKey((Key) _serverKey.get(serverName));
-        mm.verifySignature();
+        try {
+            mm.verifySignature();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         return mm;
     }
-
 
 }
