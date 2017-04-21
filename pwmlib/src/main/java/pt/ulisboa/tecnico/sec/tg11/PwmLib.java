@@ -97,7 +97,7 @@ public class PwmLib {
 
     }
 
-    public UUID register_user() throws Throwable {
+    public UUID register_user() throws InvalidSignatureException, UserAlreadyExistsException { //FIXME change if not working
         /*Specification: registers the user on the _serverManager, initializing the required data structures to
         securely store the passwords.*/
 
@@ -117,12 +117,12 @@ public class PwmLib {
             try {
                 result = server.register(_publicKey);
                 receiveManager = verifySignature(serverName,result);
+                uuidHashMap.put(receiveManager.getTimestamp()
+                        ,UUID.fromString(new String(receiveManager.getContent("UUID"))));
             }catch (RemoteException e) {
                 e.printStackTrace();
             }
 
-            uuidHashMap.put(receiveManager.getTimestamp()
-                    ,UUID.fromString(new String(receiveManager.getContent("UUID"))));
 
             return uuidHashMap;
         });
@@ -130,24 +130,37 @@ public class PwmLib {
         }
 
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
-
+        List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = (REPLICAS/2)+1;
         for(int i=0;i<neededAnswers;i++){
-                Future<AbstractMap> result = executor.take();
             try {
+                Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,UUID> temp = result.get();
-                for(Timestamp ts : temp.keySet())
+                for(Timestamp ts : temp.keySet()){
+                    System.out.println("---------_>ALA ISEL");
                     tree.put(ts,temp.get(ts));
+                }
             } catch (ExecutionException e) {
-                throw e.getCause();
+                exceptions.add(e.getCause());
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+        }
+
+        if(exceptions.size()>=neededAnswers){
+            Throwable e = exceptions.get(0);
+            if(e.getCause() instanceof InvalidSignatureException)
+                throw (InvalidSignatureException) e.getCause();
+            else if(e.getCause() instanceof UserAlreadyExistsException)
+                throw (UserAlreadyExistsException) e.getCause();
         }
 
         return tree.lastEntry().getValue();
 
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InterruptedException, ActionFailedException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InterruptedException, ActionFailedException {
         /*Specification: stores the triple (domain, username, password) on the _serverManager. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _serverManager, or to an update otherwise.
         */
@@ -180,7 +193,7 @@ public class PwmLib {
         }
 
         List<String> list = new ArrayList<>();
-
+        List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = (REPLICAS/2)+1;
         for(int i=0;i<REPLICAS;i++){
             Future<String> result = executor.take();
@@ -189,21 +202,25 @@ public class PwmLib {
                 if(resultStatus.equals("ACK")){
                    list.add(resultStatus);
                     if(i>=neededAnswers)
-                        return;
+                        return;   //If it succeeds just return
                 }
             } catch (ExecutionException e) {
-                if(e.getCause() instanceof UserDoesNotExistException)
-                    throw (UserDoesNotExistException) e.getCause();
-                else if(e.getCause() instanceof InvalidSignatureException)
-                    throw (InvalidSignatureException) e.getCause();
-                else if(e.getCause() instanceof  InvalidNonceException)
-                    throw (InvalidNonceException) e.getCause();
-                else if(e.getCause() instanceof WrongUserIDException)
-                    throw (WrongUserIDException) e.getCause();
+                exceptions.add(e);
             }
         }
 
-        throw new ActionFailedException();
+        if(exceptions.size()>=neededAnswers){
+            Throwable e = exceptions.get(0);
+            if(e.getCause() instanceof UserDoesNotExistException)
+                throw (UserDoesNotExistException) e.getCause();
+            else if(e.getCause() instanceof InvalidSignatureException)
+                throw (InvalidSignatureException) e.getCause();
+            else if(e.getCause() instanceof  InvalidNonceException)
+                throw (InvalidNonceException) e.getCause();
+            else if(e.getCause() instanceof WrongUserIDException)
+                throw (WrongUserIDException) e.getCause();
+        }else
+            throw new ActionFailedException();
 
     }
 
@@ -244,6 +261,7 @@ public class PwmLib {
 
         TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
 
+        List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = (REPLICAS/2)+1;
         for(int i=0;i<neededAnswers;i++){
             try {
@@ -252,19 +270,24 @@ public class PwmLib {
                 for(Timestamp ts : temp.keySet())
                     tree.put(ts,temp.get(ts));
             } catch (ExecutionException e) {
-                if(e.getCause() instanceof UserDoesNotExistException)
-                    throw (UserDoesNotExistException) e.getCause();
-                else if(e.getCause() instanceof InvalidSignatureException)
-                    throw (InvalidSignatureException) e.getCause();
-                else if(e.getCause() instanceof  InvalidRequestException)
-                    throw (InvalidRequestException) e.getCause();
-                else if(e.getCause() instanceof  InvalidNonceException)
-                    throw (InvalidNonceException) e.getCause();
-                else if(e.getCause() instanceof WrongUserIDException)
-                    throw (WrongUserIDException) e.getCause();
+                exceptions.add(e);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        if(exceptions.size()>=neededAnswers){
+            Throwable e = exceptions.get(0);
+            if(e.getCause() instanceof UserDoesNotExistException)
+                throw (UserDoesNotExistException) e.getCause();
+            else if(e.getCause() instanceof InvalidSignatureException)
+                throw (InvalidSignatureException) e.getCause();
+            else if(e.getCause() instanceof  InvalidRequestException)
+                throw (InvalidRequestException) e.getCause();
+            else if(e.getCause() instanceof  InvalidNonceException)
+                throw (InvalidNonceException) e.getCause();
+            else if(e.getCause() instanceof WrongUserIDException)
+                throw (WrongUserIDException) e.getCause();
         }
 
         return tree.lastEntry().getValue();

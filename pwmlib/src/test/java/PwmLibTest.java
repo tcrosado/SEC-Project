@@ -65,6 +65,17 @@ public class PwmLibTest {
         _pwmlib.init(_keystore,password);
         _userID = _pwmlib.register_user();
 
+
+        _keystore2 = KeyStore.getInstance(KeyStore.getDefaultType());
+        _keystore2.load(new FileInputStream(PATH_TO_RSAKEYSTORE2), password);
+        _pwmlib2 = new PwmLib();
+        _pwmlib2.init(_keystore2,password);
+
+        _userID2 = _pwmlib2.register_user();
+        _privateKey2 = (PrivateKey) _keystore2.getKey(CLIENT_PUBLIC_KEY, password);
+        _publicKey2 = _keystore2.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
+
+
 //        System.out.println("userid -> " + _userID.toString());
 
         /*
