@@ -4,6 +4,7 @@ package pt.ulisboa.tecnico.sec.tg11;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
+import pt.ulisboa.tecnico.sec.tg11.exceptions.ActionFailedException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -100,14 +101,12 @@ public class PwmLib {
         /*Specification: registers the user on the _serverManager, initializing the required data structures to
         securely store the passwords.*/
 
-
         ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
         ExecutorCompletionService executor = new ExecutorCompletionService(pool);
 
         for(int i=1;i<=REPLICAS;i++){
             final Integer in = i;
             final String serverName = "PWMServer"+i;
-
         executor.submit(() -> {
             AbstractMap<Timestamp,UUID> uuidHashMap = new HashMap<Timestamp,UUID>();
             PWMInterface server = getServer(in);
@@ -118,12 +117,7 @@ public class PwmLib {
             try {
                 result = server.register(_publicKey);
                 receiveManager = verifySignature(serverName,result);
-            } catch (InvalidSignatureException e) {
-                e.printStackTrace();
-
-            } catch (UserAlreadyExistsException e) {
-                e.printStackTrace();
-            } catch (RemoteException e) {
+            }catch (RemoteException e) {
                 e.printStackTrace();
             }
 
@@ -145,7 +139,12 @@ public class PwmLib {
                 for(Timestamp ts : temp.keySet())
                     tree.put(ts,temp.get(ts));
             } catch (ExecutionException e) {
-                e.printStackTrace();
+                if(e.getCause() instanceof UserDoesNotExistException)
+                    throw (UserDoesNotExistException) e.getCause();
+                else if(e.getCause() instanceof InvalidSignatureException)
+                    throw (InvalidSignatureException) e.getCause();
+                else if(e.getCause() instanceof  UserAlreadyExistsException)
+                    throw (UserAlreadyExistsException) e.getCause();
             }
         }
 
@@ -153,41 +152,63 @@ public class PwmLib {
 
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InterruptedException, ActionFailedException {
         /*Specification: stores the triple (domain, username, password) on the _serverManager. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _serverManager, or to an update otherwise.
         */
         int acks = 0;
 
-       /* for(String serverName: _threadList.keySet()) {
-            PWMInterface server = _threadList.get(serverName);
+        ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
+        ExecutorCompletionService executor = new ExecutorCompletionService(pool);
 
-            //get nounce
-            byte[] result = server.requestNonce(userID);
-            MessageManager mm = verifySignature(serverName,result);
-            BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
+        for(int i=1;i<=REPLICAS;i++){
+            final Integer in = i;
+            final String serverName = "PWMServer"+i;
+            executor.submit(() -> {
+                AbstractMap<Timestamp,String> resultHashMap = new HashMap<Timestamp,String>();
+                PWMInterface server = getServer(in);
+                //get nounce
+                byte[] result = server.requestNonce(userID);
+                MessageManager mm = verifySignature(serverName,result);
+                BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
 
-            //generate and send put message
-            MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
-            content.putHashedContent("domain",domain);
-            content.putHashedContent("username",username);
-            content.putCipheredContent("password",password);
-            result = server.put(content.generateMessage());
+                //generate and send put message
+                MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
+                content.putHashedContent("domain",domain);
+                content.putHashedContent("username",username);
+                content.putCipheredContent("password",password);
+                byte[] response = server.put(content.generateMessage());
 
-            //verify signature of response
-            mm = verifySignature(serverName,result);
-
-            if(!mm.getContent("Status").equals("ACK")){
-                //FIXME fazer reverse -> nao deu ACK
-
-            }
-            ++acks;
+                MessageManager resp = new MessageManager(response);
+                return new String(resp.getContent("Status"));
+            });
         }
 
-        if(acks < REPLICAS/2){
-            //FIXME fazer reverse -> nao deu ACKs suficientes
+        List<String> list = new ArrayList<>();
 
-        }*/
+        int neededAnswers = (REPLICAS/2)+1;
+        for(int i=0;i<REPLICAS;i++){
+            Future<String> result = executor.take();
+            try {
+                String resultStatus = result.get();
+                if(resultStatus.equals("ACK")){
+                   list.add(resultStatus);
+                    if(i>=neededAnswers)
+                        return;
+                }
+            } catch (ExecutionException e) {
+                if(e.getCause() instanceof UserDoesNotExistException)
+                    throw (UserDoesNotExistException) e.getCause();
+                else if(e.getCause() instanceof InvalidSignatureException)
+                    throw (InvalidSignatureException) e.getCause();
+                else if(e.getCause() instanceof  InvalidNonceException)
+                    throw (InvalidNonceException) e.getCause();
+                else if(e.getCause() instanceof WrongUserIDException)
+                    throw (WrongUserIDException) e.getCause();
+            }
+        }
+
+        throw new ActionFailedException();
 
     }
 
@@ -197,26 +218,63 @@ public class PwmLib {
         what should happen if the (domain, username) pair does not exist is unspecified
         */
 
-        int answers = 0;
-        Timestamp latestTS = null;
-        Timestamp actualTS = null;
-        byte[] latestPW = null;
-        MessageManager receiveManager = null;
+        ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
+        ExecutorCompletionService executor = new ExecutorCompletionService(pool);
+
+        for(int i=1;i<=REPLICAS;i++){
+            final Integer in = i;
+            final String serverName = "PWMServer"+i;
+            executor.submit(() -> {
+
+                AbstractMap<Timestamp,byte[]> pwHashMap = new HashMap<Timestamp,byte[]>();
+                PWMInterface server = getServer(in);
+                if(server == null)
+                    return pwHashMap;
+                //get nounce
+                byte[] result = server.requestNonce(userID);
+                MessageManager mm = verifySignature(serverName, result);
+                BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
+
+                //generate and send get message
+                MessageManager content = new MessageManager(nonce, userID, _privateKey, this._publicKey);
+                content.putHashedContent("domain", domain);
+                content.putHashedContent("username", username);
+                byte[] passMsg = server.get(content.generateMessage());
+                MessageManager receiveManager = verifySignature(serverName, passMsg);
+                    pwHashMap.put(receiveManager.getTimestamp(),receiveManager.getDecypheredContent("Password"));
+                return pwHashMap;
+            });
+
+        }
+
+        TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
+
+        int neededAnswers = (REPLICAS/2)+1;
+        for(int i=0;i<neededAnswers;i++){
+            try {
+                Future<AbstractMap> result = executor.take();
+                AbstractMap<Timestamp,byte[]> temp = result.get();
+                for(Timestamp ts : temp.keySet())
+                    tree.put(ts,temp.get(ts));
+            } catch (ExecutionException e) {
+                if(e.getCause() instanceof UserDoesNotExistException)
+                    throw (UserDoesNotExistException) e.getCause();
+                else if(e.getCause() instanceof InvalidSignatureException)
+                    throw (InvalidSignatureException) e.getCause();
+                else if(e.getCause() instanceof  InvalidRequestException)
+                    throw (InvalidRequestException) e.getCause();
+                else if(e.getCause() instanceof  InvalidNonceException)
+                    throw (InvalidNonceException) e.getCause();
+                else if(e.getCause() instanceof WrongUserIDException)
+                    throw (WrongUserIDException) e.getCause();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return tree.lastEntry().getValue();
 /*
         for(String serverName: _threadList.keySet()) {
-            PWMInterface server = _threadList.get(serverName);
-
-            //get nounce
-            byte[] result = server.requestNonce(userID);
-            MessageManager mm = verifySignature(serverName, result);
-            BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
-
-            //generate and send get message
-            MessageManager content = new MessageManager(nonce, userID, _privateKey, this._publicKey);
-            content.putHashedContent("domain", domain);
-            content.putHashedContent("username", username);
-            byte[] passMsg = server.get(content.generateMessage());
-            receiveManager = verifySignature(serverName, passMsg);
 
             actualTS = receiveManager.getTimestamp();
 
@@ -236,7 +294,6 @@ public class PwmLib {
         //ATOMICITY added -> update latest password to all the other nodes
         save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPW);
 */
-        return latestPW;
     }
 
     public void close(){

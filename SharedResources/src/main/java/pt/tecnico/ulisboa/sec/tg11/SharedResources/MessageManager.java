@@ -15,7 +15,6 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.sql.Timestamp;
-import java.util.Base64;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -93,8 +92,8 @@ public class MessageManager {
 		return b.toByteArray();
 	}
 	
-	public byte[] getDecypheredMessage(byte[] value) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
-		return this.rsaDecipherValue(value, this._srcPrivateKey);
+	public byte[] getDecypheredContent(String key) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+		return this.rsaDecipherValue(_msg.getContent(key), this._srcPrivateKey);
 	}
 
 	public void putPlainTextContent(String key, byte[] value) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, IOException {

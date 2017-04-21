@@ -269,7 +269,6 @@ public class Server implements PWMInterface {
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
             UUID user = generateUUID(publicKey.getEncoded());
-            logger.debug("generated -"+user.toString());
             for(UUID id : _userKeys.keySet())
                 if(_userKeys.get(id).equals(publicKey))
                     throw new UserAlreadyExistsException(publicKey);
