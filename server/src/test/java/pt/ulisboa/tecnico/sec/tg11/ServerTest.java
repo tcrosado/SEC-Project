@@ -165,7 +165,7 @@ public class ServerTest extends AbstractTest{
 		receiveManager = verifyMessage(passResult);
 
 
-		byte[] retrieved = manager.getDecypheredMessage(receiveManager.getContent("Password"));
+		byte[] retrieved = receiveManager.getDecypheredContent("Password");
 		assertArrayEquals(password.getBytes(),retrieved);
 	}
 
@@ -194,7 +194,7 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("username",username.getBytes());
 		byte[] result2 =_serverRemote.get(manager.generateMessage());
 		MessageManager received = verifyMessage(result2);
-		byte[] retrieved = manager.getDecypheredMessage(received.getContent("Password"));
+		byte[] retrieved = received.getDecypheredContent("Password");
 
 
 
@@ -224,7 +224,7 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("username",username.getBytes());
 		result4 = _serverRemote.get(manager.generateMessage());
 		mm = verifyMessage(result4);
-		retrieved = manager.getDecypheredMessage(mm.getContent("Password"));
+		retrieved = mm.getDecypheredContent("Password");
 		assertArrayEquals(password2.getBytes(),retrieved);
 	}
 
@@ -281,7 +281,7 @@ public class ServerTest extends AbstractTest{
 	}
 
 	private MessageManager verifyMessage(byte[] msg) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
-		MessageManager mm = new MessageManager(msg);
+		MessageManager mm = new MessageManager(msg,keypair.getPrivate());
 		mm.setPublicKey(_serverPublicKey);
 		mm.verifySignature();
 		return mm;

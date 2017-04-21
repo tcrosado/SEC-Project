@@ -32,6 +32,12 @@ public class MessageManager {
 	private Timestamp _ts;
 
 	//RECEIVES MESSAGE
+	public MessageManager(byte[] message,Key privateKey) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IllegalBlockSizeException, BadPaddingException, InvalidSignatureException, ClassNotFoundException {
+		this(message);
+		_srcPrivateKey = privateKey;
+
+	}
+
 	public MessageManager(byte[] message) throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, InvalidSignatureException {
 
 		ByteArrayInputStream b = new ByteArrayInputStream(message);
@@ -41,7 +47,7 @@ public class MessageManager {
         //FIXME POSSIBLE ERROR
         _ts = (Timestamp) obj.readObject();
 	}
-	
+
 	//SERVER SEND MESSAGE
 	public MessageManager(BigInteger nonce,Key srcPrivateKey,Key srcPublicKey) throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException {
 		_srcPrivateKey = srcPrivateKey;

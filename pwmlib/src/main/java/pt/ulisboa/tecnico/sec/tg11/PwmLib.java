@@ -97,7 +97,7 @@ public class PwmLib {
 
     }
 
-    public UUID register_user() throws UserAlreadyExistsException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, ClassNotFoundException, InvalidSignatureException, UserDoesNotExistException, InterruptedException {
+    public UUID register_user() throws Throwable {
         /*Specification: registers the user on the _serverManager, initializing the required data structures to
         securely store the passwords.*/
 
@@ -139,12 +139,7 @@ public class PwmLib {
                 for(Timestamp ts : temp.keySet())
                     tree.put(ts,temp.get(ts));
             } catch (ExecutionException e) {
-                if(e.getCause() instanceof UserDoesNotExistException)
-                    throw (UserDoesNotExistException) e.getCause();
-                else if(e.getCause() instanceof InvalidSignatureException)
-                    throw (InvalidSignatureException) e.getCause();
-                else if(e.getCause() instanceof  UserAlreadyExistsException)
-                    throw (UserAlreadyExistsException) e.getCause();
+                throw e.getCause();
             }
         }
 
@@ -312,7 +307,7 @@ public class PwmLib {
     private MessageManager verifySignature(String serverName,byte[] msg) throws InvalidSignatureException {
         MessageManager mm = null;
         try {
-            mm = new MessageManager(msg);
+            mm = new MessageManager(msg,_privateKey);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
