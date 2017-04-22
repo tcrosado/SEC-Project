@@ -19,6 +19,6 @@ public class UserAlreadyExistsException extends Exception {
 
 	@Override
 	public String getMessage() {
-		return "The publickey '" + _publickey.toString() + "has already been registered.";
+		return "The publickey specified has already been registered.";
 	}
 }

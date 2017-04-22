@@ -97,13 +97,14 @@ public class PwmLib {
 
     }
 
-    public UUID register_user() throws InvalidSignatureException, UserAlreadyExistsException { //FIXME change if not working
+    public UUID register_user() throws Throwable { //FIXME change if not working
         /*Specification: registers the user on the _serverManager, initializing the required data structures to
         securely store the passwords.*/
 
         ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
         ExecutorCompletionService executor = new ExecutorCompletionService(pool);
-
+        
+        //LANCAR PEDIDOS
         for(int i=1;i<=REPLICAS;i++){
             final Integer in = i;
             final String serverName = "PWMServer"+i;
@@ -128,7 +129,8 @@ public class PwmLib {
         });
 
         }
-
+        
+        //ESPERA E ARMAZENA RESPOSTAS
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
         List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = (REPLICAS/2)+1;
@@ -137,7 +139,6 @@ public class PwmLib {
                 Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,UUID> temp = result.get();
                 for(Timestamp ts : temp.keySet()){
-                    System.out.println("---------_>ALA ISEL");
                     tree.put(ts,temp.get(ts));
                 }
             } catch (ExecutionException e) {
@@ -150,17 +151,16 @@ public class PwmLib {
 
         if(exceptions.size()>=neededAnswers){
             Throwable e = exceptions.get(0);
-            if(e.getCause() instanceof InvalidSignatureException)
-                throw (InvalidSignatureException) e.getCause();
-            else if(e.getCause() instanceof UserAlreadyExistsException)
-                throw (UserAlreadyExistsException) e.getCause();
+            
+            throw e.getCause() == null ? e : e.getCause();
+            
         }
-
+        
         return tree.lastEntry().getValue();
 
     }
 
-    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InterruptedException, ActionFailedException {
+    public void save_password (UUID userID, byte[] domain, byte[] username, byte[] password) throws Throwable {
         /*Specification: stores the triple (domain, username, password) on the _serverManager. This corresponds
         to an insertion if the (domain, username) pair is not already known by the _serverManager, or to an update otherwise.
         */
@@ -211,21 +211,14 @@ public class PwmLib {
 
         if(exceptions.size()>=neededAnswers){
             Throwable e = exceptions.get(0);
-            if(e.getCause() instanceof UserDoesNotExistException)
-                throw (UserDoesNotExistException) e.getCause();
-            else if(e.getCause() instanceof InvalidSignatureException)
-                throw (InvalidSignatureException) e.getCause();
-            else if(e.getCause() instanceof  InvalidNonceException)
-                throw (InvalidNonceException) e.getCause();
-            else if(e.getCause() instanceof WrongUserIDException)
-                throw (WrongUserIDException) e.getCause();
+            throw e.getCause();
         }else
             throw new ActionFailedException();
 
     }
 
 
-    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws UserDoesNotExistException, InvalidRequestException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, SignatureException, IOException, InvalidAlgorithmParameterException, ClassNotFoundException, InvalidNonceException, WrongUserIDException, InvalidSignatureException {
+    public byte[] retrieve_password(UUID userID, byte[] domain, byte[] username) throws Throwable {
         /*Specification: retrieves the password associated with the given (domain, username) pair. The behavior of
         what should happen if the (domain, username) pair does not exist is unspecified
         */
@@ -278,16 +271,7 @@ public class PwmLib {
 
         if(exceptions.size()>=neededAnswers){
             Throwable e = exceptions.get(0);
-            if(e.getCause() instanceof UserDoesNotExistException)
-                throw (UserDoesNotExistException) e.getCause();
-            else if(e.getCause() instanceof InvalidSignatureException)
-                throw (InvalidSignatureException) e.getCause();
-            else if(e.getCause() instanceof  InvalidRequestException)
-                throw (InvalidRequestException) e.getCause();
-            else if(e.getCause() instanceof  InvalidNonceException)
-                throw (InvalidNonceException) e.getCause();
-            else if(e.getCause() instanceof WrongUserIDException)
-                throw (WrongUserIDException) e.getCause();
+            throw e.getCause();
         }
 
         return tree.lastEntry().getValue();
