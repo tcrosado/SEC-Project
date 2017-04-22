@@ -176,6 +176,8 @@ public class PwmLib {
             executor.submit(() -> {
                 AbstractMap<Timestamp,String> resultHashMap = new HashMap<Timestamp,String>();
                 PWMInterface server = getServer(in);
+                if(server == null)
+                    return "Error";
                 //get nounce
                 byte[] result = server.requestNonce(userID);
                 MessageManager mm = verifySignature(serverName,result);
@@ -212,7 +214,7 @@ public class PwmLib {
 
         if(exceptions.size()>=neededAnswers){
             Throwable e = exceptions.get(0);
-            throw e.getCause();
+            throw e.getCause() == null ? e : e.getCause();
         }else
             throw new ActionFailedException();
 
@@ -272,7 +274,7 @@ public class PwmLib {
 
         if(exceptions.size()>=neededAnswers){
             Throwable e = exceptions.get(0);
-            throw e.getCause();
+            throw e.getCause() == null ? e : e.getCause();
         }
 
         if(tree.isEmpty())
