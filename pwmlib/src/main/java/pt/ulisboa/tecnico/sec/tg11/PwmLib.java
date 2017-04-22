@@ -155,7 +155,8 @@ public class PwmLib {
             throw e.getCause() == null ? e : e.getCause();
             
         }
-        
+        if(tree.isEmpty())
+            return null;
         return tree.lastEntry().getValue();
 
     }
@@ -273,6 +274,9 @@ public class PwmLib {
             Throwable e = exceptions.get(0);
             throw e.getCause();
         }
+
+        if(tree.isEmpty())
+            return null;
 
         return tree.lastEntry().getValue();
 /*
