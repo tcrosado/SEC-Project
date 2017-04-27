@@ -117,15 +117,13 @@ public class PwmLib {
             
             byte[] result = new byte[0];
             MessageManager receiveManager = null;
-            try {
-                result = server.register(_publicKey);
-                receiveManager = verifySignature(serverName,result);
-                uuidHashMap.put(receiveManager.getTimestamp()
-                        ,UUID.fromString(new String(receiveManager.getContent("UUID"))));
-            }catch (RemoteException e) {
-                e.printStackTrace();
-            }
-
+            
+            
+            result = server.register(_publicKey);
+            receiveManager = verifySignature(serverName,result);
+            uuidHashMap.put(receiveManager.getTimestamp()
+                    ,UUID.fromString(new String(receiveManager.getContent("UUID"))));
+            
 
             return uuidHashMap;
         });
@@ -136,15 +134,22 @@ public class PwmLib {
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
         List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = REPLICAS-1;
-        for(int i=0;i<neededAnswers;i++){
+        for(int i=0;i<REPLICAS;i++){
             try {
+            	            	
                 Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,UUID> temp = result.get();
+                
                 for(Timestamp ts : temp.keySet()){
                     tree.put(ts,temp.get(ts));
                 }
             } catch (ExecutionException e) {
-                exceptions.add(e.getCause());
+            	
+            	System.out.println("IM HERE MADAFAKA "+ e.getMessage());
+                if(e.getCause() == null)
+                	exceptions.add(e);
+                else
+                	exceptions.add(e.getCause());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -262,7 +267,7 @@ public class PwmLib {
 
         List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = REPLICAS-1;
-        for(int i=0;i<neededAnswers;i++){
+        for(int i=0;i<REPLICAS;i++){
             try {
                 Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,byte[]> temp = result.get();

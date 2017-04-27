@@ -92,7 +92,7 @@ public class Server implements PWMInterface {
             	server = new Server(Integer.parseInt(args[0]));
             	server.setUp();
         	}
-        	else if(args.length ==2 ){
+        	else if(args.length == 2 ){
         		server = new Server(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
         		server.setUp();
         	}	
