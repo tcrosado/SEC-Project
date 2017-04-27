@@ -52,7 +52,7 @@ public class Server implements PWMInterface {
 	private static Map<UUID, List<Login>> _userlogin = new ConcurrentHashMap<UUID, List<Login>>();
 	private Map<UUID,List<BigInteger>> _nonces;
 
-    private Registry reg;
+    private static Registry reg;
     private int port;
 
 

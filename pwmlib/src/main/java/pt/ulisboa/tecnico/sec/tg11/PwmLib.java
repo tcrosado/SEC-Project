@@ -111,8 +111,10 @@ public class PwmLib {
         executor.submit(() -> {
             AbstractMap<Timestamp,UUID> uuidHashMap = new HashMap<Timestamp,UUID>();
             PWMInterface server = getServer(in);
+            
             if(server == null)
                 return uuidHashMap;
+            
             byte[] result = new byte[0];
             MessageManager receiveManager = null;
             try {
@@ -133,7 +135,7 @@ public class PwmLib {
         //ESPERA E ARMAZENA RESPOSTAS
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
         List<Throwable> exceptions = new ArrayList<>();
-        int neededAnswers = (REPLICAS/2)+1;
+        int neededAnswers = REPLICAS-1;
         for(int i=0;i<neededAnswers;i++){
             try {
                 Future<AbstractMap> result = executor.take();
@@ -197,7 +199,7 @@ public class PwmLib {
 
         List<String> list = new ArrayList<>();
         List<Throwable> exceptions = new ArrayList<>();
-        int neededAnswers = (REPLICAS/2)+1;
+        int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
             Future<String> result = executor.take();
             try {
@@ -236,6 +238,7 @@ public class PwmLib {
 
                 AbstractMap<Timestamp,byte[]> pwHashMap = new HashMap<Timestamp,byte[]>();
                 PWMInterface server = getServer(in);
+                
                 if(server == null)
                     return pwHashMap;
                 //get nounce
@@ -258,7 +261,7 @@ public class PwmLib {
         TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
 
         List<Throwable> exceptions = new ArrayList<>();
-        int neededAnswers = (REPLICAS/2)+1;
+        int neededAnswers = REPLICAS-1;
         for(int i=0;i<neededAnswers;i++){
             try {
                 Future<AbstractMap> result = executor.take();
