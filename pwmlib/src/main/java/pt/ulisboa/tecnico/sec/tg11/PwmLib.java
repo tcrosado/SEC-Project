@@ -145,7 +145,6 @@ public class PwmLib {
                 }
             } catch (ExecutionException e) {
             	
-            	System.out.println("IM HERE MADAFAKA "+ e.getMessage());
                 if(e.getCause() == null)
                 	exceptions.add(e);
                 else
