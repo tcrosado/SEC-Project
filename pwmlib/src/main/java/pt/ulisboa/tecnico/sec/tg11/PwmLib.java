@@ -287,8 +287,13 @@ public class PwmLib {
 
         if(tree.isEmpty())
             return null;
-
-        return tree.lastEntry().getValue();
+        
+        //atomic part
+        
+        byte[] received_pass = tree.lastEntry().getValue();
+        this.save_password(userID, domain, username, received_pass);
+        
+        return received_pass;
 /*
         for(String serverName: _threadList.keySet()) {
 
