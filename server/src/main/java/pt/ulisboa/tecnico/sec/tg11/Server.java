@@ -64,6 +64,7 @@ public class Server implements PWMInterface {
         this.port = port;
         _nonces = new HashMap<UUID,List<BigInteger>>();
         reg = LocateRegistry.createRegistry(this.port);
+        _keystorepw = "1234567";
 
        setServerKeys(id);
 
@@ -372,7 +373,7 @@ public class Server implements PWMInterface {
 	public void setServerKeys(int id) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException{
 		
 		KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "1234567";
+
 
         // get user password and file input stream
         char[] password = _keystorepw.toCharArray();
