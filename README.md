@@ -16,12 +16,12 @@
 
 Questões a resolver:
 
- -> fazer mais testes para os servers
- -> fazer mais testes para o pwmlib
+ 1) fazer mais testes para os servers
+ 2) fazer mais testes para o pwmlib
 
 Testes possiveis:
 
--> testar InvalidNonceException no cliente
--> testar respostas insuficientes
--> acessos concurrentes (testNG) -----> ultima coisa a fazer
--> fazer save-password usando TSs iguais
+1) testar InvalidNonceException no cliente
+2) testar respostas insuficientes
+3) acessos concurrentes (testNG) -----> ultima coisa a fazer
+4) fazer save-password usando TSs iguais
