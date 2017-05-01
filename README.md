@@ -16,7 +16,12 @@
 
 Questões a resolver:
 
- 1) verificar se exceçoes recebidas são iguais
- 2) adicionar exceção para a verificação nonce
- 3) fazer mais testes para os servers
- 4) fazer mais testes para o pwmlib
+ -> fazer mais testes para os servers
+ -> fazer mais testes para o pwmlib
+
+Testes possiveis:
+
+-> testar InvalidNonceException no cliente
+-> testar respostas insuficientes
+-> acessos concurrentes (testNG) -----> ultima coisa a fazer
+-> fazer save-password usando TSs iguais
