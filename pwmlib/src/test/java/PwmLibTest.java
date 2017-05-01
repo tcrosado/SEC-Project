@@ -4,7 +4,6 @@ import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
 import pt.ulisboa.tecnico.sec.tg11.PwmLib;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.ActionFailedException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

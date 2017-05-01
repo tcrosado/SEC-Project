@@ -123,23 +123,23 @@ public class Server implements PWMInterface {
     public byte[] put(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
         /*UUID userID, byte[] domain, byte[] username, byte[] password*/
         try {
-            MessageManager manager = new MessageManager(msg);
-            UUID userID = manager.getUserID();
+            MessageManager receivedManager = new MessageManager(msg);
+            UUID userID = receivedManager.getUserID();
 
             Key clientKey = _userKeys.get(userID);
             
             if(clientKey == null)
             	throw new WrongUserIDException(userID);
             
-            manager.setPublicKey(clientKey);
-            manager.verifySignature();
+            receivedManager.setPublicKey(clientKey);
+            receivedManager.verifySignature();
             
-            this.verifyNounce(userID, manager.getNonce());
+            this.verifyNounce(userID, receivedManager.getNonce());
             
-            byte[] domain = manager.getContent("domain");
-            byte[] username = manager.getContent("username");
-            byte[] password = manager.getContent("password");
-            Timestamp messageTs = manager.getTimestamp();
+            byte[] domain = receivedManager.getContent("domain");
+            byte[] username = receivedManager.getContent("username");
+            byte[] password = receivedManager.getContent("password");
+            Timestamp messageTs = receivedManager.getTimestamp();
 
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
@@ -158,6 +158,7 @@ public class Server implements PWMInterface {
                                 l.setPassword(password);
                                 _userlogin.replace(userID, login_list);
                                 sendManager.putPlainTextContent("Status", "ACK".getBytes());
+                                sendManager.putPlainTextContent("TransactionID", receivedManager.getNonce().toByteArray());
                                 logger.debug("Updated password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
                                 return sendManager.generateMessage();
                             }
@@ -168,6 +169,8 @@ public class Server implements PWMInterface {
                 l.add(new Login(username, domain, password, messageTs));
                 _userlogin.put(userID, l);
                 sendManager.putPlainTextContent("Status","ACK".getBytes());
+                sendManager.putPlainTextContent("TransactionID", receivedManager.getNonce().toByteArray());
+
                 logger.debug("Added password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
                 return sendManager.generateMessage();
 
@@ -219,7 +222,8 @@ public class Server implements PWMInterface {
             byte[] domain = receiveManager.getContent("domain");
             byte[] username = receiveManager.getContent("username");
 
-
+            
+            //INUTIL NONCE
             MessageManager sendManager = new MessageManager(this.generateNonce(),_privateKey,_publicKey);
 
 
@@ -231,6 +235,7 @@ public class Server implements PWMInterface {
                         if(Arrays.equals(l.getDomain(), domain) && (Arrays.equals(l.getUsername(), username))){
 
                             sendManager.putPlainTextContent("Password",l.getPassword());
+                            sendManager.putPlainTextContent("TransactionID", receiveManager.getNonce().toByteArray());
                             logger.debug("Gotten password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
                             return sendManager.generateMessage();
                         }
@@ -260,7 +265,7 @@ public class Server implements PWMInterface {
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
-        return new byte[0];
+        return null;
     }
 
 	public byte[] register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
@@ -277,6 +282,7 @@ public class Server implements PWMInterface {
             List<Login> log = new ArrayList<Login>();
             _userlogin.put(user, log);
             logger.debug("User: "+user+" created.");
+            sendManager.putPlainTextContent("TransactionID", sendManager.getNonce().toByteArray());
             sendManager.putPlainTextContent("UUID",user.toString().getBytes());
             return sendManager.generateMessage();
 
