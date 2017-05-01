@@ -209,7 +209,7 @@ public class PwmLib {
                 if(Arrays.equals(nonce.toByteArray(), resp.getContent("TransactionID")))
                 	return new String(resp.getContent("Status"));
                 else
-                	return null;
+                	throw new InvalidNonceException(nonce);
             });
         }
 
@@ -289,6 +289,8 @@ public class PwmLib {
                 //VERIFICA NONCE DO SERVER PARA PREVENIR MAN-IN-THE-MIDDLE SERVER-CLI
                 if(Arrays.equals(nonce.toByteArray(), receiveManager.getContent("TransactionID")))
                     pwHashMap.put(receiveManager.getTimestamp(),receiveManager.getDecypheredContent("Password"));
+                else
+                	throw new InvalidNonceException(nonce);
                 
                 return pwHashMap;
             });
@@ -322,7 +324,8 @@ public class PwmLib {
                 e.printStackTrace();
             }
         }
-
+        
+        //LANCA EXCECAO QUANDO RECEBE NEEDEDANSWERS EXCEPCOES
         for(String exceptionName: exceptions.keySet()){
 	        if(exceptions.get(exceptionName).size()>=neededAnswers){
 	            throw exceptions.get(exceptionName).get(0);
