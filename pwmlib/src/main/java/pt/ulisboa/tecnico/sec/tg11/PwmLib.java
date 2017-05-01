@@ -13,6 +13,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -34,7 +38,8 @@ import java.util.function.Function;
  */
 public class PwmLib {
 
-    private final int REPLICAS = 4;
+    private int REPLICAS;
+    private int NEEDEDANSWERS;
     private final String CLIENT_PUBLIC_KEY = "privatekey";
 
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
@@ -51,7 +56,7 @@ public class PwmLib {
     
 
 
-    public void init(KeyStore ks,char[] password) throws RemoteException, NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, FileNotFoundException {
+    public void init(KeyStore ks,char[] password) throws NotBoundException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, IOException {
         /*Specification: initializes the library before its first use.
         This method should receive a reference to a key store that must contain the private and public key
         of the user, as well as any other parameters needed to access this key store (e.g., its password)
@@ -68,6 +73,8 @@ public class PwmLib {
 
         this._threadList = new ConcurrentHashMap<String, Thread>();
         this._serverKey = new HashMap<String, Key>();
+        this.REPLICAS = getNumberServers();
+        this.NEEDEDANSWERS = this.REPLICAS/2;
 
 
         for(int i=1;i<=REPLICAS;i++){
@@ -132,7 +139,7 @@ public class PwmLib {
         //ESPERA E ARMAZENA RESPOSTAS
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
         Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
-        int neededAnswers = REPLICAS-1;
+        
         for(int i=0;i<REPLICAS;i++){
             try {
             	            	
@@ -163,7 +170,7 @@ public class PwmLib {
         }
 
         for(String exceptionName: exceptions.keySet()){
-	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	        if(exceptions.get(exceptionName).size()>NEEDEDANSWERS){
 	            throw exceptions.get(exceptionName).get(0);
 	        }
         }
@@ -216,14 +223,13 @@ public class PwmLib {
         List<String> list = new ArrayList<>();
         Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
         
-        int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
             Future<String> result = executor.take();
             try {
                 String resultStatus = result.get();
                 if(resultStatus.equals("ACK")){
                    list.add(resultStatus);
-                    if(i>=neededAnswers)
+                    if(i>NEEDEDANSWERS)
                         return;   //If it succeeds just return
                 }
             } catch (ExecutionException e) {
@@ -246,7 +252,7 @@ public class PwmLib {
         }
         
         for(String exceptionName: exceptions.keySet()){
-	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	        if(exceptions.get(exceptionName).size()>NEEDEDANSWERS){
 	            throw exceptions.get(exceptionName).get(0);
 	        }
         }
@@ -274,6 +280,7 @@ public class PwmLib {
                 
                 if(server == null)
                     return pwHashMap;
+                
                 //get nounce
                 byte[] result = server.requestNonce(userID);
                 MessageManager mm = verifySignature(serverName, result);
@@ -299,7 +306,7 @@ public class PwmLib {
 
         TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
         Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
-        int neededAnswers = REPLICAS-1;
+       
         for(int i=0;i<REPLICAS;i++){
             try {
                 Future<AbstractMap> result = executor.take();
@@ -327,7 +334,7 @@ public class PwmLib {
         
         //LANCA EXCECAO QUANDO RECEBE NEEDEDANSWERS EXCEPCOES
         for(String exceptionName: exceptions.keySet()){
-	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	        if(exceptions.get(exceptionName).size()>NEEDEDANSWERS){
 	            throw exceptions.get(exceptionName).get(0);
 	        }
         }
@@ -400,6 +407,20 @@ public class PwmLib {
             e.printStackTrace();
         }
         return mm;
+    }
+    
+    private int getNumberServers() throws IOException{
+    	
+    	Path dir = Paths.get("./src/main/resources/");
+    	int count = 0;
+    	
+    	try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "server*.cer")) {
+    	    for (Path file : stream) {
+    	        count++;
+    	    }
+    	}
+    	
+    	return count;
     }
 
 }
