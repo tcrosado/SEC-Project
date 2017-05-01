@@ -276,8 +276,10 @@ public class PwmLib {
             try {
                 Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,byte[]> temp = result.get();
-                for(Timestamp ts : temp.keySet())
-                    tree.put(ts,temp.get(ts));
+                for(Timestamp ts : temp.keySet()){
+                    System.out.println("Timestamp = "+ts);
+                	tree.put(ts,temp.get(ts));
+                }
             } catch (ExecutionException e) {
                 exceptions.add(e);
             } catch (InterruptedException e) {
@@ -292,6 +294,11 @@ public class PwmLib {
 
         if(tree.isEmpty())
             return null;
+        else{
+        	for(Timestamp ts: tree.keySet())
+        		System.out.println("Tree ts = "+ts);
+        }
+        	
         
         //atomic part
         

@@ -48,7 +48,7 @@ public class Server implements PWMInterface {
     private PrivateKey _privateKey;
     private PublicKey _publicKey;
 
-	private Map<UUID, Key> _userKeys = new ConcurrentHashMap<UUID, Key>();
+	private Map<UUID, Key> _userKeys = new HashMap<UUID, Key>();
 	private static Map<UUID, List<Login>> _userlogin = new ConcurrentHashMap<UUID, List<Login>>();
 	private Map<UUID,List<BigInteger>> _nonces;
 
