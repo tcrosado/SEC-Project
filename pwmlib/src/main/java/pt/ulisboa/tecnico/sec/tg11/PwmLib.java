@@ -131,7 +131,7 @@ public class PwmLib {
         
         //ESPERA E ARMAZENA RESPOSTAS
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
-        List<Throwable> exceptions = new ArrayList<>();
+        Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
         int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
             try {
@@ -144,24 +144,33 @@ public class PwmLib {
                 }
             } catch (ExecutionException e) {
             	
-                if(e.getCause() == null)
-                	exceptions.add(e);
-                else
-                	exceptions.add(e.getCause());
+            	Throwable ex = e.getCause() == null ? e : e.getCause();
+                
+            	String exceptionName = ex.getClass().getCanonicalName();
+        		
+            	if(!exceptions.containsKey(exceptionName)){
+            		List<Throwable> l = new ArrayList<>();
+            		l.add(ex);
+            		exceptions.put(exceptionName, l);
+            	}else{
+            		
+            		exceptions.get(exceptionName).add(ex);
+            	}
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
-        if(exceptions.size()>=neededAnswers){
-            Throwable e = exceptions.get(0);
-            
-            throw e.getCause() == null ? e : e.getCause();
-            
+        for(String exceptionName: exceptions.keySet()){
+	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	            throw exceptions.get(exceptionName).get(0);
+	        }
         }
+        
         if(tree.isEmpty())
             return null;
+        
         return tree.lastEntry().getValue();
 
     }
@@ -205,7 +214,8 @@ public class PwmLib {
         }
 
         List<String> list = new ArrayList<>();
-        List<Throwable> exceptions = new ArrayList<>();
+        Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
+        
         int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
             Future<String> result = executor.take();
@@ -217,15 +227,31 @@ public class PwmLib {
                         return;   //If it succeeds just return
                 }
             } catch (ExecutionException e) {
-                exceptions.add(e);
+            	
+            	Throwable ex = e.getCause() == null ? e : e.getCause();
+               
+            	String exceptionName = ex.getClass().getCanonicalName();
+        		
+            	if(!exceptions.containsKey(exceptionName)){
+            		List<Throwable> l = new ArrayList<>();
+            		l.add(ex);
+            		exceptions.put(exceptionName, l);
+            	}else{
+            		
+            		exceptions.get(exceptionName).add(ex);
+            	}
+                		
+                
             }
         }
-
-        if(exceptions.size()>=neededAnswers){
-            Throwable e = exceptions.get(0);
-            throw e.getCause() == null ? e : e.getCause();
-        }else
-            throw new ActionFailedException();
+        
+        for(String exceptionName: exceptions.keySet()){
+	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	            throw exceptions.get(exceptionName).get(0);
+	        }
+        }
+        
+        throw new ActionFailedException();
 
     }
 
@@ -270,34 +296,42 @@ public class PwmLib {
         }
 
         TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
-        List<Throwable> exceptions = new ArrayList<>();
+        Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
         int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
             try {
                 Future<AbstractMap> result = executor.take();
                 AbstractMap<Timestamp,byte[]> temp = result.get();
                 for(Timestamp ts : temp.keySet()){
-                    System.out.println("Timestamp = "+ts);
                 	tree.put(ts,temp.get(ts));
                 }
             } catch (ExecutionException e) {
-                exceptions.add(e);
+            	Throwable ex = e.getCause() == null ? e : e.getCause();
+                
+            	String exceptionName = ex.getClass().getCanonicalName();
+        		
+            	if(!exceptions.containsKey(exceptionName)){
+            		List<Throwable> l = new ArrayList<>();
+            		l.add(ex);
+            		exceptions.put(exceptionName, l);
+            	}else{
+            		
+            		exceptions.get(exceptionName).add(ex);
+            	}
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
-        if(exceptions.size()>=neededAnswers){
-            Throwable e = exceptions.get(0);
-            throw e.getCause() == null ? e : e.getCause();
+        for(String exceptionName: exceptions.keySet()){
+	        if(exceptions.get(exceptionName).size()>=neededAnswers){
+	            throw exceptions.get(exceptionName).get(0);
+	        }
         }
 
         if(tree.isEmpty())
             return null;
-        else{
-        	for(Timestamp ts: tree.keySet())
-        		System.out.println("Tree ts = "+ts);
-        }
+        
         	
         
         //atomic part
