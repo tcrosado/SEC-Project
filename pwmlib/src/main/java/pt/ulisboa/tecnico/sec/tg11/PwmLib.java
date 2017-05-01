@@ -4,7 +4,6 @@ package pt.ulisboa.tecnico.sec.tg11;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
-import pt.ulisboa.tecnico.sec.tg11.exceptions.ActionFailedException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -197,7 +196,11 @@ public class PwmLib {
                 byte[] response = server.put(content.generateMessage());
 
                 MessageManager resp = new MessageManager(response);
-                return new String(resp.getContent("Status"));
+                
+                if(Arrays.equals(nonce.toByteArray(), resp.getContent("TransactionID")))
+                	return new String(resp.getContent("Status"));
+                else
+                	return null;
             });
         }
 
@@ -256,14 +259,17 @@ public class PwmLib {
                 content.putHashedContent("username", username);
                 byte[] passMsg = server.get(content.generateMessage());
                 MessageManager receiveManager = verifySignature(serverName, passMsg);
+                
+                //VERIFICA NONCE DO SERVER PARA PREVENIR MAN-IN-THE-MIDDLE SERVER-CLI
+                if(Arrays.equals(nonce.toByteArray(), receiveManager.getContent("TransactionID")))
                     pwHashMap.put(receiveManager.getTimestamp(),receiveManager.getDecypheredContent("Password"));
+                
                 return pwHashMap;
             });
 
         }
 
         TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
-
         List<Throwable> exceptions = new ArrayList<>();
         int neededAnswers = REPLICAS-1;
         for(int i=0;i<REPLICAS;i++){
@@ -293,27 +299,6 @@ public class PwmLib {
         this.save_password(userID, domain, username, received_pass);
         
         return received_pass;
-/*
-        for(String serverName: _threadList.keySet()) {
-
-            actualTS = receiveManager.getTimestamp();
-
-            if (latestTS == null || actualTS.after(latestTS)) {
-                ++answers;
-                latestTS = actualTS;
-                latestPW = receiveManager.getContent("Password");
-            }
-        }
-
-        if (answers < REPLICAS/2){
-            //FIXME -> nao deu passwords suficientes
-            System.out.println("abort");
-            return null;
-        }
-
-        //ATOMICITY added -> update latest password to all the other nodes
-        save_password (receiveManager.getUserID(),receiveManager.getContent("domain"),receiveManager.getContent("username"), latestPW);
-*/
     }
 
     public void close(){
