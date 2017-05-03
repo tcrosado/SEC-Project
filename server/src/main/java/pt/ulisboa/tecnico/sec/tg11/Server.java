@@ -174,7 +174,7 @@ public class Server implements PWMInterface {
 
 
                                 l.setPassword(password);
-                                _userlogin.replace(userID, login_list);
+                                _userlogin.put(userID, login_list);
                                 sendManager.putPlainTextContent("Status", "ACK".getBytes());
                                 sendManager.putPlainTextContent("TransactionID", receivedManager.getNonce().toByteArray());
                                 logger.debug("Updated password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
