@@ -20,7 +20,7 @@ removeFiles() {
 generateCertificates() {
 
 	for N in $(seq $SERVER); do
-		removeFiles N
+		removeFiles $N
 		#Generate new certificates
 		keytool -noprompt -genkey -alias privatekey -keyalg RSA -keystore $serverResourcePath"keystore"$N".jks" -keysize 2048 \
 		-dname "CN=none, OU=none, O=none, L=none, S=none, C=none" \
