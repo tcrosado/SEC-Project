@@ -25,3 +25,9 @@ Testes possiveis:
 2) testar respostas insuficientes
 3) acessos concurrentes (testNG) -----> ultima coisa a fazer
 4) fazer save-password usando TSs iguais
+
+Perguntas Prof:
+1) Equações para calcular falhas
+2) Discutir implementação
+3) Timestamps iguais? tratar por ID do servidor
+4) Discutir SAUT
