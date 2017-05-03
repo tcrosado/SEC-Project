@@ -47,7 +47,7 @@ fi
 
 FAULTS=$1
 SERVER=$((($FAULTS * 3)+1))
-echo "$SERVER will be executed"
+echo "Launching $SERVER servers"
 
 
 replace=false
