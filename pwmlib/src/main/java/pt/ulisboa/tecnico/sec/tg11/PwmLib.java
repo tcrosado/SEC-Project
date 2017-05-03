@@ -150,19 +150,8 @@ public class PwmLib {
                     tree.put(ts,temp.get(ts));
                 }
             } catch (ExecutionException e) {
-            	
-            	Throwable ex = e.getCause() == null ? e : e.getCause();
-                
-            	String exceptionName = ex.getClass().getCanonicalName();
-        		
-            	if(!exceptions.containsKey(exceptionName)){
-            		List<Throwable> l = new ArrayList<>();
-            		l.add(ex);
-            		exceptions.put(exceptionName, l);
-            	}else{
-            		
-            		exceptions.get(exceptionName).add(ex);
-            	}
+
+                updateExceptionList(exceptions,e);
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -233,20 +222,7 @@ public class PwmLib {
                         return;   //If it succeeds just return
                 }
             } catch (ExecutionException e) {
-            	
-            	Throwable ex = e.getCause() == null ? e : e.getCause();
-               
-            	String exceptionName = ex.getClass().getCanonicalName();
-        		
-            	if(!exceptions.containsKey(exceptionName)){
-            		List<Throwable> l = new ArrayList<>();
-            		l.add(ex);
-            		exceptions.put(exceptionName, l);
-            	}else{
-            		
-            		exceptions.get(exceptionName).add(ex);
-            	}
-                		
+            	updateExceptionList(exceptions,e);
                 
             }
         }
@@ -315,18 +291,7 @@ public class PwmLib {
                 	tree.put(ts,temp.get(ts));
                 }
             } catch (ExecutionException e) {
-            	Throwable ex = e.getCause() == null ? e : e.getCause();
-                
-            	String exceptionName = ex.getClass().getCanonicalName();
-        		
-            	if(!exceptions.containsKey(exceptionName)){
-            		List<Throwable> l = new ArrayList<>();
-            		l.add(ex);
-            		exceptions.put(exceptionName, l);
-            	}else{
-            		
-            		exceptions.get(exceptionName).add(ex);
-            	}
+                updateExceptionList(exceptions,e);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -421,6 +386,21 @@ public class PwmLib {
     	}
     	
     	return count;
+    }
+
+    private void updateExceptionList( Map<String, List<Throwable>> exceptions ,ExecutionException e){
+        Throwable ex = e.getCause() == null ? e : e.getCause();
+
+        String exceptionName = ex.getClass().getCanonicalName();
+
+        if(!exceptions.containsKey(exceptionName)){
+            List<Throwable> l = new ArrayList<>();
+            l.add(ex);
+            exceptions.put(exceptionName, l);
+        }else{
+
+            exceptions.get(exceptionName).add(ex);
+        }
     }
 
 }
