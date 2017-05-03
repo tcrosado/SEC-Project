@@ -42,7 +42,7 @@ public class Server implements PWMInterface {
 
     static Logger logger = Logger.getLogger(Server.class.getName());
 	
-	private String SERVER_REGISTRY_NAME = null;
+	private static String SERVER_REGISTRY_NAME = null;
     private final String KEY_NAME = "privatekey";
     private static String _keystorepw;
     private PrivateKey _privateKey;
@@ -113,6 +113,23 @@ public class Server implements PWMInterface {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    logger.info(SERVER_REGISTRY_NAME+" is shutting down.");
+                    shutdown();
+                    Thread.sleep(2000);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                } catch (NotBoundException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         Object lockObject=new Object();
         synchronized(lockObject){
@@ -309,7 +326,7 @@ public class Server implements PWMInterface {
         return null; //FIXME
     }
 
-	public void shutdown() throws RemoteException, NotBoundException {
+	public static void shutdown() throws RemoteException, NotBoundException {
 	    reg.unbind(SERVER_REGISTRY_NAME);
         UnicastRemoteObject.unexportObject(reg, true);
     }
