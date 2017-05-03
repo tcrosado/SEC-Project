@@ -26,12 +26,9 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.sql.Time;
 import java.util.*;
 import java.sql.Timestamp;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Created by trosado on 01/03/17.
@@ -253,9 +250,10 @@ public class PwmLib {
 
                 AbstractMap<Timestamp,byte[]> pwHashMap = new HashMap<Timestamp,byte[]>();
                 PWMInterface server = getServer(in);
+                ServerResult serverResult = new ServerResult();
                 
                 if(server == null)
-                    return pwHashMap;
+                    return null;
                 
                 //get nounce
                 byte[] result = server.requestNonce(userID);
@@ -269,27 +267,38 @@ public class PwmLib {
                 byte[] passMsg = server.get(content.generateMessage());
                 MessageManager receiveManager = verifySignature(serverName, passMsg);
                 
-                //VERIFICA NONCE DO SERVER PARA PREVENIR MAN-IN-THE-MIDDLE SERVER-CLI
-                if(Arrays.equals(nonce.toByteArray(), receiveManager.getContent("TransactionID")))
-                    pwHashMap.put(receiveManager.getTimestamp(),receiveManager.getDecypheredContent("Password"));
-                else
+                //server nonce verification to avoid man-in-the-middle attacks from server to cli
+                if(Arrays.equals(nonce.toByteArray(), receiveManager.getContent("TransactionID"))){
+                    serverResult.setServerId(in);
+                    serverResult.setCreationTime(receiveManager.getTimestamp());
+                    serverResult.setMessage(receiveManager.getDecypheredContent("Password"));
+                }else
                 	throw new InvalidNonceException(nonce);
                 
-                return pwHashMap;
+                return serverResult;
             });
 
         }
 
-        TreeMap<Timestamp,byte[]> tree = new TreeMap<>();
+        TreeMap<Timestamp,ServerResult> tree = new TreeMap<>();
         Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
        
         for(int i=0;i<REPLICAS;i++){
             try {
-                Future<AbstractMap> result = executor.take();
-                AbstractMap<Timestamp,byte[]> temp = result.get();
-                for(Timestamp ts : temp.keySet()){
-                	tree.put(ts,temp.get(ts));
+                Future<ServerResult> result = executor.take();
+                ServerResult serverResult = result.get();
+                if(serverResult == null)
+                    continue;
+
+                if(tree.containsKey(serverResult.getCreationTime())){
+                    ServerResult inTree = tree.get(serverResult.getCreationTime());
+                    if(inTree.getServerId()>serverResult.getServerId()){
+                        tree.put(serverResult.getCreationTime(),serverResult);
+                    }
+                }else{
+                    tree.put(serverResult.getCreationTime(),serverResult);
                 }
+
             } catch (ExecutionException e) {
                 updateExceptionList(exceptions,e);
             } catch (InterruptedException e) {
@@ -297,7 +306,7 @@ public class PwmLib {
             }
         }
         
-        //LANCA EXCECAO QUANDO RECEBE NEEDEDANSWERS EXCEPCOES
+        //throws exception when it receives nr of neededanswers exceptions
         for(String exceptionName: exceptions.keySet()){
 	        if(exceptions.get(exceptionName).size()>NEEDEDANSWERS){
 	            throw exceptions.get(exceptionName).get(0);
@@ -311,7 +320,7 @@ public class PwmLib {
         
         //atomic part
         
-        byte[] received_pass = tree.lastEntry().getValue();
+        byte[] received_pass = tree.lastEntry().getValue().getMessage();
         this.save_password(userID, domain, username, received_pass);
         
         return received_pass;
