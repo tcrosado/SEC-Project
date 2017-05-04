@@ -5,22 +5,46 @@ serverResourcePath="./src/main/resources/"
 pwnlibResourcePath="../pwmlib/src/main/resources/"
 
 
-removeFiles() {
-	if [ -f $serverResourcePath"keystore"$1".jks" ]; then
-		rm $serverResourcePath"keystore"$1".jks"
-	fi
-	if [ -f $serverResourcePath"server"$1".cer" ]; then
-		rm $serverResourcePath"server"$1".cer"
-	fi
-	if [ -f $pwnlibResourcePath"server"$1".cer" ]; then
-		rm $pwnlibResourcePath"server"$1".cer"
-	fi
+removeFilesFromServer() {
+
+	SERVERFILES=$(ls $serverResourcePath| grep server && ls $serverResourcePath| grep keystore)
+
+	for f in $SERVERFILES; do
+		echo "removing $f from server"
+		rm $serverResourcePath$f
+	done
+
+#	if [ -f $serverResourcePath"keystore"$1".jks" ]; then
+#		rm $serverResourcePath"keystore"$1".jks"
+#	fi
+#	if [ -f $serverResourcePath"server"$1".cer" ]; then
+#		rm $serverResourcePath"server"$1".cer"
+#	fi
+#	if [ -f $pwnlibResourcePath"server"$1".cer" ]; then
+#		rm $pwnlibResourcePath"server"$1".cer"
+#	fi
+}
+
+removeFilesFromClient(){
+
+	CLIFILES=$(ls $pwnlibResourcePath| grep server)
+
+	for f in $CLIFILES; do
+		echo "removing $f from client"
+		rm $pwnlibResourcePath$f
+	done
 }
 
 generateCertificates() {
 
+	echo "removing files from server"
+	removeFilesFromServer
+	echo "removing files from client"
+	removeFilesFromClient
+	echo "all files removed"
+
 	for N in $(seq $SERVER); do
-		removeFiles $N
+		
 		#Generate new certificates
 		keytool -noprompt -genkey -alias privatekey -keyalg RSA -keystore $serverResourcePath"keystore"$N".jks" -keysize 2048 \
 		-dname "CN=none, OU=none, O=none, L=none, S=none, C=none" \
@@ -47,19 +71,9 @@ fi
 
 FAULTS=$1
 SERVER=$((($FAULTS * 3)+1))
-echo "Launching $SERVER servers"
+echo "Launching $SERVER servers"	
 
-
-replace=false
-for N in $(seq $SERVER); do
-	if [ ! -f $serverResourcePath"keystore"$N".jks" ]; then
-		replace=true
-	fi
-done 	
-
-if [ $replace == true ]; then
-	generateCertificates
-fi
+generateCertificates
 
 
 mvn clean package 
