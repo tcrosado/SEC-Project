@@ -120,7 +120,7 @@ public class Server implements PWMInterface {
                 try {
                     logger.info(SERVER_REGISTRY_NAME+" is shutting down.");
                     shutdown();
-                    Thread.sleep(1000);
+                    Thread.sleep(1);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 } catch (NotBoundException e) {

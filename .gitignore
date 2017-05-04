@@ -17,6 +17,8 @@ local.properties
 .recommenders
 *.card
 *.cnf
+*.jks
+*.cer
 
 # Eclipse Core
 .project
