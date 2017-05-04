@@ -13,3 +13,4 @@
   2) run ./project <number_faults>
   3) run mvn clean package at "pwmlib" package in order to run client tests
 
+note: the script is prepared to run on xfce4-terminal, you should change this line on script in order to run the project on your own terminal
