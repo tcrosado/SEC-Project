@@ -1,33 +1,16 @@
 # SEC-Project
 
-#Maven Version: 
-    -Apache Maven 3.3.9
+* Maven Version: 
+    * Apache Maven 3.3.9
 
-#Java Version:
-    -openjdk version "1.8.0_121"
-    -OpenJDK Runtime Environment (build 1.8.0_121-8u121-b13-3-b13)
-    -OpenJDK 64-Bit Server VM (build 25.121-b13, mixed mode)
+* Java Version:
+    * openjdk version "1.8.0_121"
+    * OpenJDK Runtime Environment (build 1.8.0_121-8u121-b13-3-b13)
+    * OpenJDK 64-Bit Server VM (build 25.121-b13, mixed mode)
     
 #Running Project:
   1) run mvn clean install at "SharedResources" package
-  2) run mvn clean package exec:java at "server" package in order to run server tests
+  2) run ./project <number_faults>
   3) run mvn clean package at "pwmlib" package in order to run client tests
 
-
-Questões a resolver:
-
- 1) fazer mais testes para os servers
- 2) fazer mais testes para o pwmlib
-
-Testes possiveis:
-
-1) testar InvalidNonceException no cliente (MOCKIT)
-2) testar respostas insuficientes (A PATA)
-3) acessos concurrentes (testNG) -----> ultima coisa a fazer
-4) fazer save-password usando TSs iguais (MOCKIT)
-
-Perguntas Prof:
-1) Equações para calcular falhas
-2) Discutir implementação
-3) Timestamps iguais? tratar por ID do servidor
-4) Discutir SAUT
+note: the script is prepared to run on xfce4-terminal, you should change this line on script in order to run the project on your own terminal
