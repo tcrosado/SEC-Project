@@ -23,7 +23,6 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +42,7 @@ public class Server implements PWMInterface {
     static Logger logger = Logger.getLogger(Server.class.getName());
 	
 	private static String SERVER_REGISTRY_NAME = null;
+	private static Integer timestamp;
     private final String KEY_NAME = "privatekey";
     private static String _keystorepw;
     private PrivateKey _privateKey;
@@ -62,6 +62,7 @@ public class Server implements PWMInterface {
 
     public Server(int port, int id) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         this.port = port;
+        timestamp = 0;
         _nonces = new HashMap<UUID,List<BigInteger>>();
         reg = LocateRegistry.createRegistry(this.port);
         _keystorepw = "1234567";
@@ -153,12 +154,12 @@ public class Server implements PWMInterface {
             receivedManager.verifySignature();
             
             this.verifyNounce(userID, receivedManager.getNonce());
-            
+
             byte[] domain = receivedManager.getContent("domain");
             byte[] username = receivedManager.getContent("username");
             byte[] password = receivedManager.getContent("password");
-            Timestamp messageTs = receivedManager.getTimestamp();
-
+            Timestamp physicalTs = receivedManager.getTimestamp();
+            Integer logicalTs = Integer.parseInt(new String(receivedManager.getContent("LogicalTimestamp")));
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
 
@@ -169,29 +170,28 @@ public class Server implements PWMInterface {
                     for (Login l: login_list) {
                         if((Arrays.equals(l.getDomain(),domain)) && Arrays.equals(l.getUsername(),username)){
 
-                            if(messageTs.after(l.getTimestamp())) {
-                            //Check if messagetimestamp > latest logintimestamp
-
-
-                                l.setPassword(password);
-                                _userlogin.put(userID, login_list);
-                                sendManager.putPlainTextContent("Status", "ACK".getBytes());
-                                sendManager.putPlainTextContent("TransactionID", receivedManager.getNonce().toByteArray());
+                            if(logicalTs > l.getLogicalTimestamp()) {
+                                login_list.remove(l);
+                                Login newLogin = new Login(username, domain, password,logicalTs, physicalTs);
                                 logger.debug("Updated password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
-                                return sendManager.generateMessage();
+                                return updateLoginList(login_list,newLogin,userID,receivedManager.getNonce().toByteArray());
+
+                            }else if(logicalTs == l.getLogicalTimestamp()){
+                                if (physicalTs.after(l.getPhysicalTimestamp())){
+                                    login_list.remove(l);
+                                    Login newLogin = new Login(username, domain, password,logicalTs, physicalTs);
+                                    logger.debug("Updated password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
+
+                                    return updateLoginList(login_list,newLogin,userID,receivedManager.getNonce().toByteArray());
+                                }
                             }
                         }
                     }
                 }
-                List<Login> l = new ArrayList<Login>(login_list);
-                l.add(new Login(username, domain, password, messageTs));
-                _userlogin.put(userID, l);
-                sendManager.putPlainTextContent("Status","ACK".getBytes());
-                sendManager.putPlainTextContent("TransactionID", receivedManager.getNonce().toByteArray());
-
-                logger.debug("Added password on "+SERVER_REGISTRY_NAME + " for userid -> " + userID.toString() );
-                return sendManager.generateMessage();
-
+                List<Login> lList = new ArrayList<Login>(login_list);
+                Login l = new Login(username, domain, password,logicalTs, physicalTs);
+                logger.debug("Added password on "+SERVER_REGISTRY_NAME+" for userid -> " + userID.toString() );
+                return updateLoginList(lList,l,userID,receivedManager.getNonce().toByteArray());
             }
             else
                 throw new UserDoesNotExistException(userID);
@@ -286,7 +286,49 @@ public class Server implements PWMInterface {
         return null;
     }
 
-	public byte[] register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
+    public byte[] getLatestTimestamp(byte[] msg) throws RemoteException,WrongUserIDException,InvalidSignatureException,InvalidNonceException {
+
+        try {
+            MessageManager receiveManager =  new MessageManager(msg);
+            UUID userID = receiveManager.getUserID();
+            Key clientKey = _userKeys.get(userID);
+            if(clientKey == null)
+                throw new WrongUserIDException(userID);
+
+            receiveManager.setPublicKey(clientKey);
+            receiveManager.verifySignature();
+
+            this.verifyNounce(userID, receiveManager.getNonce());
+
+            MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
+            sendManager.putPlainTextContent("TransactionID", receiveManager.getNonce().toByteArray());
+            sendManager.putPlainTextContent("LogicalTimestamp",new String(""+timestamp).getBytes());
+            return sendManager.generateMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+
+
+        return new byte[0];
+    }
+
+    public byte[] register(Key publicKey) throws RemoteException, UserAlreadyExistsException {
 
         try {
             MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
@@ -403,5 +445,19 @@ public class Server implements PWMInterface {
         SERVER_REGISTRY_NAME = "PWMServer"+id;
         
 	}
+
+	private byte[] updateLoginList(List<Login> login_list,Login l,UUID userID,byte[] receivedNonce) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException, SignatureException, ClassNotFoundException {
+        MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
+        login_list.add(l);
+        _userlogin.put(userID, login_list);
+        sendManager.putPlainTextContent("Status", "ACK".getBytes());
+        sendManager.putPlainTextContent("TransactionID", receivedNonce);
+        updateLogicalTimestamp(l.getLogicalTimestamp());
+        return sendManager.generateMessage();
+    }
+
+    private static void updateLogicalTimestamp( Integer logicalTs){
+	    timestamp = timestamp < logicalTs ? logicalTs :timestamp;
+    }
 
 }
