@@ -68,6 +68,8 @@ public class ServerTest extends AbstractTest{
 	}
 
 
+
+
 	@Test
 	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
@@ -110,6 +112,79 @@ public class ServerTest extends AbstractTest{
 		receiveManager = verifyMessage(newPut);
 		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
 	}
+
+
+	@Test
+	public void testPutWithSameTimestamp() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
+		String domain = "www.google.pt";
+		String username = "testUser";
+		String password = "testPass";
+		String password2 = "testPass2";
+
+		Integer logicalTimestamp = getTimestamp();
+
+		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
+		manager.putHashedContent("domain",domain.getBytes());
+		manager.putHashedContent("username",username.getBytes());
+		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
+		byte[] putResult = _serverRemote.put(manager.generateMessage());
+
+		MessageManager receiveManager = verifyMessage(putResult);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		MessageManager mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
+		manager.putHashedContent("domain",domain.getBytes());
+		manager.putHashedContent("username",username.getBytes());
+		byte[] passResult =_serverRemote.get(manager.generateMessage());
+		receiveManager = verifyMessage(passResult);
+
+
+		byte[] retrieved = receiveManager.getDecypheredContent("Password");
+		assertArrayEquals(password.getBytes(),retrieved);
+
+
+		result =  _serverRemote.requestNonce(_userID);
+		mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
+		manager.putHashedContent("domain",domain.getBytes());
+		manager.putHashedContent("username",username.getBytes());
+		manager.putCipheredContent("password",password2.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
+		byte[] putResult2 = _serverRemote.put(manager.generateMessage());
+
+		receiveManager = verifyMessage(putResult2);
+		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+
+		result =  _serverRemote.requestNonce(_userID);
+		mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
+		manager.putHashedContent("domain",domain.getBytes());
+		manager.putHashedContent("username",username.getBytes());
+		passResult =_serverRemote.get(manager.generateMessage());
+		receiveManager = verifyMessage(passResult);
+
+		retrieved = receiveManager.getDecypheredContent("Password");
+		assertArrayEquals(password2.getBytes(),retrieved);
+	}
+
+
+
 
 	@Test
 	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
