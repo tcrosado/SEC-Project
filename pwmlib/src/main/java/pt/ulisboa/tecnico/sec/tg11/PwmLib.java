@@ -84,12 +84,12 @@ public class PwmLib {
 
     private PWMInterface getServer(Integer i) {
 
+        String serverName = "PWMServer"+i;
         try {
             Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099+i);
-            String serverName = "PWMServer"+i;
          return (PWMInterface) registry.lookup(serverName);
         } catch (ConnectException e){
-            e.printStackTrace();
+            System.out.println("Could not connect to "+serverName);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
