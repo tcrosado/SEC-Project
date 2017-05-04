@@ -31,13 +31,16 @@ import java.util.*;
 import java.sql.Timestamp;
 import java.util.concurrent.*;
 
+import static java.lang.Math.floor;
+import static java.lang.Math.round;
+
 /**
  * Created by trosado on 01/03/17.
  */
 public class PwmLib {
 
-    private int REPLICAS;
-    private int NEEDEDANSWERS;
+    private Integer REPLICAS;
+    private double NEEDEDANSWERS;
     private final String CLIENT_PUBLIC_KEY = "privatekey";
 
     private static final String PATH_TO_KEYSTORE = "./src/main/resources/keystore.jks";
@@ -72,8 +75,9 @@ public class PwmLib {
         this._threadList = new ConcurrentHashMap<String, Thread>();
         this._serverKey = new HashMap<String, Key>();
         this.REPLICAS = getNumberServers();
-        this.NEEDEDANSWERS = ((2/3)*(REPLICAS-1))+1;
-
+        this.NEEDEDANSWERS = round((2.0/3.0)*(REPLICAS-1));
+        System.out.println("Detected "+REPLICAS+" servers.");
+        System.out.println("Needs "+(NEEDEDANSWERS+1)+" answers to succeed.");
 
         for(int i=1;i<=REPLICAS;i++){
             String serverName = "PWMServer"+i;
