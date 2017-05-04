@@ -10,6 +10,6 @@
     
 #Running Project:
   1) run mvn clean install at "SharedResources" package
-  2) run ./project <f> where f represent the number of faults to tolerate
+  2) run ./project <number_faults>
   3) run mvn clean package at "pwmlib" package in order to run client tests
 
