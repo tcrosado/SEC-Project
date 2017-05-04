@@ -1,9 +1,9 @@
 # SEC-Project
 
-#Maven Version: 
+* Maven Version: 
     * Apache Maven 3.3.9
 
-#Java Version:
+* Java Version:
     * openjdk version "1.8.0_121"
     * OpenJDK Runtime Environment (build 1.8.0_121-8u121-b13-3-b13)
     * OpenJDK 64-Bit Server VM (build 25.121-b13, mixed mode)
