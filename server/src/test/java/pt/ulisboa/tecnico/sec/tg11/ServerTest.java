@@ -55,8 +55,8 @@ public class ServerTest extends AbstractTest{
 
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -82,8 +82,8 @@ public class ServerTest extends AbstractTest{
 
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -102,8 +102,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password2.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -124,8 +124,8 @@ public class ServerTest extends AbstractTest{
 		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -141,8 +141,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		byte[] passResult =_serverRemote.get(manager.generateMessage());
 		receiveManager = verifyMessage(passResult);
 
@@ -157,8 +157,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password2.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -174,8 +174,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		passResult =_serverRemote.get(manager.generateMessage());
 		receiveManager = verifyMessage(passResult);
 
@@ -198,8 +198,8 @@ public class ServerTest extends AbstractTest{
 
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 		byte[] msg = _serverRemote.put(manager.generateMessage());
@@ -216,8 +216,8 @@ public class ServerTest extends AbstractTest{
 		_nonce = new BigInteger(mm.getContent("Nonce"));
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username2.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username2.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -232,8 +232,8 @@ public class ServerTest extends AbstractTest{
 	public void testNonExistentGet() throws IOException, UserDoesNotExistException, InvalidRequestException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
 		byte[] empty = new byte[0];
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",empty);
-		manager.putHashedContent("username",empty);
+		manager.putHashedContent("domain",empty,secret);
+		manager.putHashedContent("username",empty,secret);
 		_serverRemote.get(manager.generateMessage());
 
 	}
@@ -248,8 +248,8 @@ public class ServerTest extends AbstractTest{
 		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -264,8 +264,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		byte[] passResult =_serverRemote.get(manager.generateMessage());
 		receiveManager = verifyMessage(passResult);
 
@@ -285,8 +285,8 @@ public class ServerTest extends AbstractTest{
 		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -300,8 +300,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		byte[] result2 =_serverRemote.get(manager.generateMessage());
 		MessageManager received = verifyMessage(result2);
 		byte[] retrieved = received.getDecypheredContent("Password");
@@ -317,8 +317,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password2.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -331,8 +331,8 @@ public class ServerTest extends AbstractTest{
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		result4 = _serverRemote.get(manager.generateMessage());
 		mm = verifyMessage(result4);
 		retrieved = mm.getDecypheredContent("Password");
@@ -349,8 +349,8 @@ public class ServerTest extends AbstractTest{
 			Integer logicalTimestamp = getTimestamp();
 
 			MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-			manager.putHashedContent("domain",domain.getBytes());
-			manager.putHashedContent("username",username.getBytes());
+			manager.putHashedContent("domain",domain.getBytes(),secret);
+			manager.putHashedContent("username",username.getBytes(),secret);
 			manager.putCipheredContent("password",password.getBytes());
 			manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -367,8 +367,8 @@ public class ServerTest extends AbstractTest{
 		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 
@@ -390,8 +390,8 @@ public class ServerTest extends AbstractTest{
 
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
-		manager.putHashedContent("domain",domain.getBytes());
-		manager.putHashedContent("username",username.getBytes());
+		manager.putHashedContent("domain",domain.getBytes(),secret);
+		manager.putHashedContent("username",username.getBytes(),secret);
 		manager.putCipheredContent("password",password.getBytes());
 		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 

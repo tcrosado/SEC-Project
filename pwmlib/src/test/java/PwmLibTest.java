@@ -74,43 +74,6 @@ public class PwmLibTest {
         _privateKey2 = (PrivateKey) _keystore2.getKey(CLIENT_PUBLIC_KEY, password);
         _publicKey2 = _keystore2.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
 
-
-//        System.out.println("userid -> " + _userID.toString());
-
-        /*
-        FileInputStream fin = new FileInputStream(PATH_TO_SERVER_CERT);
-        CertificateFactory f = CertificateFactory.getInstance("X.509");
-        X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
-
-        _serverPublicKey = certificate.getPublicKey();
-    	
-        _keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystore2 = KeyStore.getInstance(KeyStore.getDefaultType());
-        _keystorepw = "1234567";
-
-        // get user password and file input stream
-        char[] password = _keystorepw.toCharArray();
-
-        _keystore.load(new FileInputStream(PATH_TO_RSAKEYSTORE), password);
-        _keystore2.load(new FileInputStream(PATH_TO_RSAKEYSTORE2), password);
-
-        _pwmlib = new PwmLib();
-        _pwmlib2 = new PwmLib();
-        _pwmlib.init(_keystore,password);
-        _pwmlib2.init(_keystore2,password);
-
-        _userID = _pwmlib.register_user();
-        _privateKey = (PrivateKey) _keystore.getKey(CLIENT_PUBLIC_KEY, password);
-        _publicKey = _keystore.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        
-        _userID2 = _pwmlib2.register_user();
-        _privateKey2 = (PrivateKey) _keystore2.getKey(CLIENT_PUBLIC_KEY, password);
-        _publicKey2 = _keystore2.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
-        
-        Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1099);
-        _server = (PWMInterface) registry.lookup("PWMServer");
-
-        */
        
     }
     
@@ -137,17 +100,6 @@ public class PwmLibTest {
         String password = "testPass";
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
 
-        /* TODO is it still needed?
-        byte[] nonceReceived =_server.requestNonce(_userID);
-        MessageManager receiveManager = verifyMessage(nonceReceived);
-
-        BigInteger nonce = new BigInteger(receiveManager.getContent("Nonce"));
-        MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
-        byte[] result = eminem.getDecypheredMessage(pw);
-
-        Assert.assertArrayEquals(password.getBytes(),result);
-        */
-       // Assert.assertEquals(password.getBytes(), pw);
         Assert.assertArrayEquals(password.getBytes(),pw);
     }
 
@@ -160,22 +112,11 @@ public class PwmLibTest {
         
         String password2 = "testPass2";
         _pwmlib.save_password(_userID,domain.getBytes(),username.getBytes(),password2.getBytes());
-        
-        /* TODO is it still needed?
-        byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
 
-        byte[] nonceReceived =_server.requestNonce(_userID);
-        MessageManager receiveManager = verifyMessage(nonceReceived);
-        BigInteger nonce = new BigInteger(receiveManager.getContent("Nonce"));
-        MessageManager eminem = new MessageManager(nonce,_userID, _privateKey, _publicKey);
-        byte[] result = eminem.getDecypheredMessage(pw);
-        
-        Assert.assertArrayEquals(password2.getBytes(),result);
-        */
 
         byte [] pw = _pwmlib.retrieve_password(_userID,domain.getBytes(), username.getBytes());
 
-        //Assert.assertEquals(password2.getBytes(), pw);
+
         Assert.assertArrayEquals(password2.getBytes(),pw);
     }
 

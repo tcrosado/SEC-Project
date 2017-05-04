@@ -44,7 +44,7 @@ public class MessageManager {
 		ObjectInputStream obj = new ObjectInputStream(b);
 		_msg = (Message) obj.readObject();
 
-        //FIXME POSSIBLE ERROR
+
         _ts = (Timestamp) obj.readObject();
 	}
 
@@ -90,7 +90,6 @@ public class MessageManager {
 		ObjectOutputStream obj = new ObjectOutputStream(b);
 		obj.writeObject(_msg);
 
-        //FIXME POSSIBLE ERROR
         obj.writeObject(_ts);
 
 		obj.flush();
@@ -112,12 +111,12 @@ public class MessageManager {
 		_msg.addContent(key, this.rsaCipherValue(value, this._srcPublicKey));
 	}
 	
-	public void putHashedContent(String key, byte[] value) throws NoSuchAlgorithmException, IOException {
+	public void putHashedContent(String key, byte[] value,byte[] salt) throws NoSuchAlgorithmException, IOException {
 		
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.write(value);
-		out.write(_msg.getUserID().toString().getBytes());
+		out.write(salt);
 
 		byte[] digest = md.digest(out.toByteArray());
 		
@@ -142,7 +141,6 @@ public class MessageManager {
 		obj.writeObject(_msg.getTimestamp());
 		obj.writeObject(_msg.getUserID());
 
-        //FIXME POSSIBLE ERROR
         obj.writeObject(_ts);
 
 		obj.flush();

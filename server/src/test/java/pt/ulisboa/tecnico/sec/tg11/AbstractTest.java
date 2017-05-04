@@ -23,7 +23,9 @@ public abstract class AbstractTest {
 		Server serverObject;
 		PublicKey _serverPublicKey;
 		PublicKey _fakePublicKey;
-		
+		byte[] secret;
+
+
 	@Before
 	public void setUp() throws Exception {
 		serverObject = new Server(1);
@@ -51,7 +53,7 @@ public abstract class AbstractTest {
 			e.printStackTrace();
 		}
 
-
+		this.secret = "UltraSecret".getBytes();
 		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 		keyPairGenerator.initialize(1024);
 		keypair = keyPairGenerator.genKeyPair();

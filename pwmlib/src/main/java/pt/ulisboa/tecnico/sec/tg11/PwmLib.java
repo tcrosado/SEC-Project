@@ -212,8 +212,8 @@ public class PwmLib {
 
                 //generate and send put message
                 content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
-                content.putHashedContent("domain",domain);
-                content.putHashedContent("username",username);
+                content.putHashedContent("domain",domain,_ksPassword.toString().getBytes());
+                content.putHashedContent("username",username,_ksPassword.toString().getBytes());
                 content.putCipheredContent("password",password);
                 content.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
                 byte[] response = server.put(content.generateMessage());
@@ -283,8 +283,8 @@ public class PwmLib {
 
                 //generate and send get message
                 MessageManager content = new MessageManager(nonce, userID, _privateKey, this._publicKey);
-                content.putHashedContent("domain", domain);
-                content.putHashedContent("username", username);
+                content.putHashedContent("domain", domain,_ksPassword.toString().getBytes());
+                content.putHashedContent("username", username,_ksPassword.toString().getBytes());
                 byte[] passMsg = server.get(content.generateMessage());
                 MessageManager receiveManager = verifySignature(serverName, passMsg);
                 
