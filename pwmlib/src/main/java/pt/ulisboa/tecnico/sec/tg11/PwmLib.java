@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sec.tg11;
 
 
+import com.sun.org.apache.regexp.internal.RE;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.MessageManager;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.PWMInterface;
 import pt.tecnico.ulisboa.sec.tg11.SharedResources.exceptions.*;
@@ -71,7 +72,7 @@ public class PwmLib {
         this._threadList = new ConcurrentHashMap<String, Thread>();
         this._serverKey = new HashMap<String, Key>();
         this.REPLICAS = getNumberServers();
-        this.NEEDEDANSWERS = this.REPLICAS/2;
+        this.NEEDEDANSWERS = ((2/3)*(REPLICAS-1))+1;
 
 
         for(int i=1;i<=REPLICAS;i++){
@@ -187,14 +188,31 @@ public class PwmLib {
                     return "Error";
                 //get nounce
                 byte[] result = server.requestNonce(userID);
+
                 MessageManager mm = verifySignature(serverName,result);
                 BigInteger nonce = new BigInteger(mm.getContent("Nonce"));
 
-                //generate and send put message
+                //get latest Timestamp
                 MessageManager content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
+                result =  server.getLatestTimestamp(content.generateMessage());
+                mm = verifySignature(serverName,result);
+
+                //very hackish
+                Integer logicalTimestamp = Integer.parseInt(new String(mm.getContent("LogicalTimestamp")));
+                logicalTimestamp+=1;
+
+                //get new nounce
+                result = server.requestNonce(userID);
+                mm = verifySignature(serverName,result);
+                nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+                //generate and send put message
+                content = new MessageManager(nonce,userID, _privateKey, this._publicKey);
                 content.putHashedContent("domain",domain);
                 content.putHashedContent("username",username);
                 content.putCipheredContent("password",password);
+                content.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
                 byte[] response = server.put(content.generateMessage());
 
                 MessageManager resp = new MessageManager(response);

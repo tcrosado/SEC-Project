@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -45,15 +46,20 @@ public class ServerTest extends AbstractTest{
 
 	
 	@Test
-	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
+
+		Integer logicalTimestamp = getTimestamp();
+
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] msg = _serverRemote.put(manager.generateMessage());
 
 		MessageManager receiveManager = verifyMessage(msg);
@@ -63,20 +69,29 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testUpdatePasswordPut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password2 = "testPass2";
 		String password = "testPass";
 
+
+		Integer logicalTimestamp = getTimestamp();
+
+
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] msg = _serverRemote.put(manager.generateMessage());
 
 		MessageManager receiveManager = verifyMessage(msg);
 		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+
+		logicalTimestamp = getTimestamp();
 
 
 		byte[] result =  _serverRemote.requestNonce(_userID);
@@ -88,6 +103,8 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password2.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] newPut = _serverRemote.put(manager.generateMessage());
 
 		receiveManager = verifyMessage(newPut);
@@ -95,20 +112,28 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testCreateUsernamePut() throws IOException, UserDoesNotExistException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String username2 = "testUser2";
 		String password = "testPass";
 
+
+		Integer logicalTimestamp = getTimestamp();
+
+
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
 		byte[] msg = _serverRemote.put(manager.generateMessage());
 
 		MessageManager receiveManager = verifyMessage(msg);
 		Assert.assertEquals("ACK",new String(receiveManager.getContent("Status")));
+
+
+		logicalTimestamp = getTimestamp();
 
 
 		byte[] result =  _serverRemote.requestNonce(_userID);
@@ -119,6 +144,8 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username2.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] newPut = _serverRemote.put(manager.generateMessage());
 
 		receiveManager = verifyMessage(newPut);
@@ -138,16 +165,19 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test
-	public void testGet() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testGet() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
 
+		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] putResult = _serverRemote.put(manager.generateMessage());
 
 		MessageManager receiveManager = verifyMessage(putResult);
@@ -170,16 +200,21 @@ public class ServerTest extends AbstractTest{
 	}
 
 	@Test
-	public void testGetUpdated() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchPaddingException, SignatureException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void testGetUpdated() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchPaddingException, SignatureException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
 		String password2 = "pass";
 
+
+		Integer logicalTimestamp = getTimestamp();
+
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		_serverRemote.put(manager.generateMessage());
 
 
@@ -210,13 +245,14 @@ public class ServerTest extends AbstractTest{
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password2.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		_serverRemote.put(manager.generateMessage());
 
 
 		byte[] result4 =  _serverRemote.requestNonce(_userID);
 		MessageManager manager2 = verifyMessage(result4);
 		_nonce = new BigInteger(manager2.getContent("Nonce"));
-
 
 
 		manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
@@ -230,30 +266,37 @@ public class ServerTest extends AbstractTest{
 
 
 	@Test(expected = InvalidNonceException.class)
-	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException {
+	public void replayAttackTest() throws IOException, UserDoesNotExistException, InvalidRequestException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 			String domain = "www.google.pt";
 			String username = "testUser";
 			String password = "testPass";
 
+			Integer logicalTimestamp = getTimestamp();
 
 			MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 			manager.putHashedContent("domain",domain.getBytes());
 			manager.putHashedContent("username",username.getBytes());
 			manager.putCipheredContent("password",password.getBytes());
+			manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 			_serverRemote.put(manager.generateMessage());
 			_serverRemote.put(manager.generateMessage());
 	}
 
 	@Test(expected = InvalidSignatureException.class)
-	public void tamperMessage() throws BadPaddingException, InvalidSignatureException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, WrongUserIDException {
+	public void tamperMessage() throws BadPaddingException, InvalidSignatureException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
+
+		Integer logicalTimestamp = getTimestamp();
 
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] msg = manager.generateMessage();
 		int index = new String(msg).indexOf("username");
 		msg[index]='U';
@@ -262,16 +305,21 @@ public class ServerTest extends AbstractTest{
 	}
 	
 	@Test(expected = InvalidSignatureException.class)
-	public void invalidVerification() throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, IOException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException{
+	public void invalidVerification() throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, IOException, SignatureException, ClassNotFoundException, UserDoesNotExistException, InvalidNonceException, InvalidSignatureException, WrongUserIDException, InvalidAlgorithmParameterException {
 		String domain = "www.google.pt";
 		String username = "testUser";
 		String password = "testPass";
 		String password2 = "pass";
 
+		Integer logicalTimestamp = getTimestamp();
+
+
 		MessageManager manager = new MessageManager(_nonce,_userID,keypair.getPrivate(),keypair.getPublic());
 		manager.putHashedContent("domain",domain.getBytes());
 		manager.putHashedContent("username",username.getBytes());
 		manager.putCipheredContent("password",password.getBytes());
+		manager.putPlainTextContent("LogicalTimestamp",new String(""+logicalTimestamp).getBytes());
+
 		byte[] msg = _serverRemote.put(manager.generateMessage());
 		
 		MessageManager fakeServer = new MessageManager(msg);
@@ -285,6 +333,27 @@ public class ServerTest extends AbstractTest{
 		mm.setPublicKey(_serverPublicKey);
 		mm.verifySignature();
 		return mm;
+	}
+
+	private Integer getTimestamp() throws BadPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, SignatureException, ClassNotFoundException, InvalidSignatureException, InvalidNonceException, WrongUserIDException {
+		byte[] result =  _serverRemote.requestNonce(_userID);
+		MessageManager mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+
+		MessageManager content = new MessageManager(_nonce,_userID, keypair.getPrivate(), keypair.getPublic());
+		 result =  _serverRemote.getLatestTimestamp(content.generateMessage());
+		mm = verifyMessage(result);
+
+		Integer logicalTimestamp = Integer.parseInt(new String(mm.getContent("LogicalTimestamp")));
+		logicalTimestamp+=1;
+
+		result =  _serverRemote.requestNonce(_userID);
+
+		mm = verifyMessage(result);
+		_nonce = new BigInteger(mm.getContent("Nonce"));
+
+		return logicalTimestamp;
 	}
 	
 }

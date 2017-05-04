@@ -36,4 +36,6 @@ public interface PWMInterface extends Remote{
 
     byte[] get(byte[] msg) throws RemoteException, UserDoesNotExistException, InvalidRequestException, InvalidNonceException, WrongUserIDException, InvalidSignatureException;
     /*UUID userID, byte[] domain, byte[] username*/
+
+    byte[] getLatestTimestamp(byte[] msg) throws RemoteException,WrongUserIDException,InvalidSignatureException,InvalidNonceException;
 }
