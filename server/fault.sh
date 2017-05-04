@@ -79,6 +79,7 @@ generateCertificates
 mvn clean package 
 for N in $(seq $SERVER);
 do
-	xfce4-terminal -e "mvn exec:java -Dexec.args=$N"
+	gnome-terminal -e "mvn exec:java -Dexec.args=$N"
+	#xfce4-terminal -e "mvn exec:java -Dexec.args=$N"
 done
 
