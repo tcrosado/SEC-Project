@@ -70,14 +70,13 @@ public class PwmLib {
         this._ksPassword = password;
         this._publicKey = ks.getCertificate(CLIENT_PUBLIC_KEY).getPublicKey();
         this._privateKey = (PrivateKey) ks.getKey(CLIENT_PUBLIC_KEY, this._ksPassword);
-        //System.out.println("A CHAVE SIMETRICA É: "+Base64.getEncoder().encodeToString(_symmetricKey.getEncoded()));
 
         this._threadList = new ConcurrentHashMap<String, Thread>();
         this._serverKey = new HashMap<String, Key>();
         this.REPLICAS = getNumberServers();
+        // neededanswers is actually needed answers -1 because we are checking for (result answers > needed answers)
         this.NEEDEDANSWERS = round((2.0/3.0)*(REPLICAS-1));
         System.out.println("Detected "+REPLICAS+" servers.");
-        System.out.println("Needs "+(NEEDEDANSWERS+1)+" answers to succeed.");
 
         for(int i=1;i<=REPLICAS;i++){
             String serverName = "PWMServer"+i;
@@ -112,7 +111,7 @@ public class PwmLib {
         ExecutorService pool = Executors.newFixedThreadPool(REPLICAS);
         ExecutorCompletionService executor = new ExecutorCompletionService(pool);
         
-        //LANCAR PEDIDOS
+        //Sends server requests
         for(int i=1;i<=REPLICAS;i++){
             final Integer in = i;
             final String serverName = "PWMServer"+i;
@@ -138,7 +137,7 @@ public class PwmLib {
 
         }
         
-        //ESPERA E ARMAZENA RESPOSTAS
+        //waits and stores server responses
         TreeMap<Timestamp,UUID> tree = new TreeMap<>();
         Map<String, List<Throwable>> exceptions = new HashMap<String, List<Throwable>>();
         

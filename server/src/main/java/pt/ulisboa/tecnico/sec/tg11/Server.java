@@ -160,7 +160,6 @@ public class Server implements PWMInterface {
             byte[] password = receivedManager.getContent("password");
             Timestamp physicalTs = receivedManager.getTimestamp();
             Integer logicalTs = Integer.parseInt(new String(receivedManager.getContent("LogicalTimestamp")));
-            MessageManager sendManager = new MessageManager(generateNonce(),_privateKey,_publicKey);
 
 
             if(_userlogin.containsKey(userID)){
@@ -216,7 +215,7 @@ public class Server implements PWMInterface {
             e.printStackTrace();
         }
 
-        return null; //FIXME
+        return null;
     }
 
 
@@ -240,8 +239,7 @@ public class Server implements PWMInterface {
             byte[] domain = receiveManager.getContent("domain");
             byte[] username = receiveManager.getContent("username");
 
-            
-            //INUTIL NONCE
+
             MessageManager sendManager = new MessageManager(this.generateNonce(),_privateKey,_publicKey);
 
 
@@ -341,7 +339,7 @@ public class Server implements PWMInterface {
             _userKeys.put(user,publicKey);
             List<Login> log = new ArrayList<Login>();
             _userlogin.put(user, log);
-            logger.debug("User: "+user+" created.");
+            logger.debug("Created user on "+SERVER_REGISTRY_NAME+" with id -> "+user+".");
             sendManager.putPlainTextContent("TransactionID", sendManager.getNonce().toByteArray());
             sendManager.putPlainTextContent("UUID",user.toString().getBytes());
             return sendManager.generateMessage();
@@ -365,7 +363,7 @@ public class Server implements PWMInterface {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        return null; //FIXME
+        return null;
     }
 
 	public static void shutdown() throws RemoteException, NotBoundException {
@@ -408,7 +406,7 @@ public class Server implements PWMInterface {
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
-        return null; //FIXME
+        return null;
     }
 
 
@@ -457,6 +455,7 @@ public class Server implements PWMInterface {
     }
 
     private static void updateLogicalTimestamp( Integer logicalTs){
+	    //updates to the latest timestamp
 	    timestamp = timestamp < logicalTs ? logicalTs :timestamp;
     }
 
